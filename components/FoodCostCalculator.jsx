@@ -989,7 +989,7 @@ export default function FoodCostCalculator() {
             </div>
             <div className="sh" style={{ marginTop: 4, marginBottom: 10 }}>
               <span className="sl">Monthly total</span>
-              <span className="spct">{fmt(monthLabor)}</span>
+              <span className="spct">{fUAH(monthLabor)}</span>
             </div>
             {employees.map((e, idx) => {
               const t = toSlider("salary", e.salary);
@@ -1009,9 +1009,7 @@ export default function FoodCostCalculator() {
                       }}
                     />
                     <div className="ci-amt-blk">
-                      <span className="ci-cur">
-                        {currency === "USD" ? "$" : "₴"}
-                      </span>
+                      <span className="ci-cur">₴</span>
                       <input
                         type="number"
                         className="ci-amt"
@@ -1098,9 +1096,7 @@ export default function FoodCostCalculator() {
                       }}
                     />
                     <div className="ci-amt-blk">
-                      <span className="ci-cur">
-                        {currency === "USD" ? "$" : "₴"}
-                      </span>
+                      <span className="ci-cur">₴</span>
                       <input
                         type="number"
                         className="ci-amt"
@@ -1167,7 +1163,7 @@ export default function FoodCostCalculator() {
             </div>
             <div className="sh" style={{ marginTop: 4, marginBottom: 10 }}>
               <span className="sl">Monthly total</span>
-              <span className="spct">{fmt(monthOps)}</span>
+              <span className="spct">{fUAH(monthOps)}</span>
             </div>
             {opsItems.map((op, idx) => {
               const bankVal = op.isBank
@@ -1217,12 +1213,10 @@ export default function FoodCostCalculator() {
                       ) : null}
                     </div>
                     {op.isBank ? (
-                      <span className="ci-amt-txt">{fmt(displayVal)}</span>
+                      <span className="ci-amt-txt">{fUAH(displayVal)}</span>
                     ) : (
                       <div className="ci-amt-blk">
-                        <span className="ci-cur">
-                          {currency === "USD" ? "$" : "₴"}
-                        </span>
+                        <span className="ci-cur">₴</span>
                         <input
                           type="number"
                           className="ci-amt"

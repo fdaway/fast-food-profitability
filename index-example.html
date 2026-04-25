@@ -1216,12 +1216,12 @@ function calculate(){
   }
 
   // labor / rent
-  setTx('labor-total',fmt(monthLabor)); setTx('labor-rev-pct',lp.toFixed(1)+'%');
-  setTx('rent-total',fmt(monthRent));   setTx('rent-rev-pct',rp.toFixed(1)+'%');
+  setTx('labor-total',fUAH(monthLabor)); setTx('labor-rev-pct',lp.toFixed(1)+'%');
+  setTx('rent-total',fUAH(monthRent));   setTx('rent-rev-pct',rp.toFixed(1)+'%');
 
   // ops (patch banking only)
   renderOps(monthRev);
-  setTx('ops-total',fmt(monthOps)); setTx('ops-rev-pct',op.toFixed(1)+'%');
+  setTx('ops-total',fUAH(monthOps)); setTx('ops-rev-pct',op.toFixed(1)+'%');
 
   // KPIs
   setCl('kpi-margin',cc(margin)); setTx('kpi-margin',margin.toFixed(1)+'%'); setTx('kpi-margin-s',ms(margin));
