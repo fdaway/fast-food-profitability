@@ -18,6 +18,10 @@
   --text: #eef0f6;
   --muted: #5a5e70;
   --label: #8a8fa5;
+  /* Ingredient include switch — aligned to dark surface + status greens */
+  --ing-sw-off: var(--muted);
+  --ing-sw-on: var(--grn-l);
+  --ing-sw-thumb: var(--text);
   --FD: var(--font-fd);
   --FM: var(--font-fm);
   --FB: var(--font-fb);
@@ -62,73 +66,33 @@ header {
   border-right: 1px solid var(--border);
   height: 100%;
 }
-
-.hdr-icon {
-  font-size: 22px;
-  line-height: 1;
+.hdr-titles {
+  min-width: 0;
+  flex: 0 1 auto;
 }
 
 .hdr-name {
   font-family: var(--FD);
-  font-size: 22px;
-  letter-spacing: 3px;
+  font-size: 15px;
+  letter-spacing: 1.5px;
   color: var(--text);
-  line-height: 1;
+  line-height: 1.15;
 }
 
 .hdr-name em {
   color: var(--accent);
   font-style: normal;
 }
-
-.hdr-sub {
-  font-size: 9px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin-top: 2px;
-}
-
-.hdr-stats {
-  display: flex;
-  align-items: stretch;
-  flex: 1;
-  height: 100%;
-  padding: 0 20px;
-  gap: 0;
-}
-
-.hdr-stat {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 0 18px;
-  border-right: 1px solid var(--border);
-  min-width: 100px;
-}
-
-.hdr-stat:first-child {
-  padding-left: 0;
-}
-
-.hdr-stat-l {
-  font-size: 9px;
-  color: var(--muted);
-  text-transform: uppercase;
+.hdr-name-cal {
+  font-family: var(--FD);
+  font-size: 15px;
   letter-spacing: 1.5px;
-  margin-bottom: 2px;
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 400;
+  margin-left: 0.35em;
+  white-space: nowrap;
 }
-
-.hdr-stat-v {
-  font-family: var(--FM);
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.hdr-stat-v.pos { color: var(--grn-l); }
-.hdr-stat-v.neg { color: var(--red-l); }
-.hdr-stat-v.acc { color: var(--accent); }
 
 .hdr-right {
   display: flex;
@@ -217,7 +181,9 @@ header {
   color: var(--text);
 }
 
+/* Food cost % (ingredients header): green 28%–55%, red outside */
 .spct.high { color: var(--red-l); }
+.spct.mid { color: var(--label); }
 .spct.ok { color: var(--accent); }
 .spct.good { color: var(--grn-l); }
 
@@ -488,10 +454,92 @@ input[type="number"].w88 {
   background: var(--acc-bg);
 }
 
+.ing-row--excluded {
+  opacity: 0.5;
+}
+.ing-row--excluded .ing-cv,
+.ing-row--excluded .ing-pv {
+  color: var(--muted);
+}
+
+/* Compact Material-style switch (fries / drinks in header) */
+.ing-sw {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 18px;
+  cursor: pointer;
+  user-select: none;
+}
+.ing-sw-input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  margin: 0;
+}
+.ing-sw-track {
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--ing-sw-off);
+  box-shadow: none;
+  transition: background 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.ing-sw-track::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--ing-sw-thumb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ing-sw-input:checked + .ing-sw-track {
+  background: var(--ing-sw-on);
+  box-shadow: none;
+}
+.ing-sw-input:checked + .ing-sw-track::before {
+  transform: translateX(16px);
+}
+.ing-sw-input:focus-visible + .ing-sw-track {
+  box-shadow: 0 0 0 2px var(--acc-d);
+}
+.ing-hdr .ing-nm-clip {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ing-list {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.ing-section-hd {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--label);
+  padding: 4px 2px 6px;
+  margin: 0;
+}
+.ing-list .ing-section-hd:not(:first-child) {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.ing-row--section-gap {
+  margin-top: 10px;
 }
 
 .ing-row {
@@ -507,11 +555,12 @@ input[type="number"].w88 {
 }
 
 .ing-hdr {
+  --ing-hdr-row-h: 18px; /* same as .ing-sw */
   display: grid;
   grid-template-columns: 1fr 52px 46px 16px;
   align-items: center;
-  gap: 4px;
-  padding: 5px 8px;
+  gap: 6px;
+  padding: 4px 8px;
   cursor: pointer;
   user-select: none;
 }
@@ -527,13 +576,37 @@ input[type="number"].w88 {
   border-radius: 4px;
 }
 
-/* Fills 1st grid track; name stays narrow so clicks in the free area close the row */
+/* 1st grid track: name + price hint + optional pill switch (fries / drinks) */
 .ing-hdr-nm {
   min-width: 0;
   max-width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+}
+.ing-hdr-nm-l {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ing-hdr-selladd {
+  font-family: var(--FM);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.88;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  min-height: var(--ing-hdr-row-h, 18px);
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px 0 2px;
 }
 
 .ing-nm {
@@ -596,6 +669,19 @@ input.ing-nm--hdr:focus {
   color: var(--muted);
   text-align: right;
   transition: transform 0.2s;
+}
+
+/* Same vertical line as .ing-sw; even spacing vs grid gap: 6 */
+.ing-hdr .ing-cv,
+.ing-hdr .ing-pv,
+.ing-hdr .ing-chv {
+  min-height: var(--ing-hdr-row-h, 18px);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .ing-row.open .ing-chv { transform: rotate(180deg); }
@@ -808,6 +894,7 @@ input.ing-nm--hdr:focus {
 .kpi-v.pos { color: var(--grn-l); }
 .kpi-v.neg { color: var(--red-l); }
 .kpi-v.neu { color: var(--accent); }
+.kpi-v.mut { color: var(--label); }
 
 .kpi-s {
   font-family: var(--FM);
@@ -917,10 +1004,12 @@ input.ing-nm--hdr:focus {
 .sr-v.acc { color: var(--accent); }
 .sr-v.grn { color: var(--grn-l); }
 .sr-v.red { color: var(--red-l); }
+.sr-v.pos { color: var(--grn-l); }
+.sr-v.neg { color: var(--red-l); }
+.sr-v.neu { color: var(--accent); }
 
 @media (max-width: 1100px) {
   .app { grid-template-columns: 1fr 1fr; }
   .out-panel { grid-column: 1/3; grid-row: 3; }
   .bot-row { grid-column: 1/3; grid-template-columns: 1fr; }
-  .hdr-stats { display: none; }
 }

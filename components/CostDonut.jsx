@@ -13,13 +13,14 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 const COLORS = ["#ef4444", "#f5a623", "#3b82f6", "#a855f7", "#22c55e"];
 const BORDER = "#131417";
 
-export default function CostDonut({ data }) {
+export default function CostDonut({ data, foodColor }) {
+  const colors = foodColor ? [foodColor, ...COLORS.slice(1)] : COLORS;
   const chartData = {
     labels: ["Food", "Labor", "Rent", "Ops", "Profit"],
     datasets: [
       {
         data: data || [0, 0, 0, 0, 0],
-        backgroundColor: COLORS,
+        backgroundColor: colors,
         borderColor: BORDER,
         borderWidth: 2,
         hoverOffset: 4,

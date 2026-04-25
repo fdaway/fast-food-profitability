@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { formatIntLocaleStable } from "@/lib/formatMoney";
 import { computePnl, ingCost, DAYS } from "@/lib/computePnl";
@@ -9,8 +9,12 @@ import {
   bankToSlider,
   fromSlider,
   toSlider,
+  toSliderRange,
+  fromSliderRange,
   updateSliderFillStyle,
+  LOG_SCALES,
 } from "@/lib/logScales";
+import { getProfitPerItemTextColor } from "@/lib/profitItemColor";
 
 const CostDonut = dynamic(() => import("@/components/CostDonut"), {
   ssr: false,
@@ -18,14 +22,49 @@ const CostDonut = dynamic(() => import("@/components/CostDonut"), {
 
 const UAH_USD = 0.024;
 
+/** Applied to P&L selling price when combo sections are toggled on/off */
+const COMBO_FRIES_ADD_UAH = 75;
+const COMBO_DRINK_ADD_UAH = 35;
+const PNL_PRICE_MIN_UAH = 120;
+const PNL_PRICE_MAX_UAH = 620;
+
+function clampPnlSellingPrice(n) {
+  const v = Math.round(Number(n) || 0);
+  return Math.max(PNL_PRICE_MIN_UAH, Math.min(PNL_PRICE_MAX_UAH, v));
+}
+
+const INGREDIENT_SECTION_LABELS = {
+  burger: "Burger",
+  fries: "Fries",
+  drinks: "Drinks",
+};
+
+function getIngredientSection(ing) {
+  return ing.section || "burger";
+}
+
+function isIngIncludedInPnl(ing, includeFries, includeDrinks) {
+  const s = getIngredientSection(ing);
+  if (s === "fries" && !includeFries) return false;
+  if (s === "drinks" && !includeDrinks) return false;
+  return true;
+}
+
 const DEFAULT_INGREDIENTS = [
-  { id: "meat", name: "Meat", grams: 190, ppkg: 480, isLavash: false },
-  { id: "lavash", name: "Lavash", grams: 50, ppkg: 12, isLavash: true },
-  { id: "cheese", name: "Cheese", grams: 30, ppkg: 580, isLavash: false },
-  { id: "tomato", name: "Tomato", grams: 30, ppkg: 252, isLavash: false },
-  { id: "greens", name: "Greens", grams: 20, ppkg: 200, isLavash: false },
-  { id: "cabbage", name: "Cabbage", grams: 30, ppkg: 70, isLavash: false },
-  { id: "sauce", name: "Sauce", grams: 40, ppkg: 247, isLavash: false },
+  { id: "meat", name: "Meat", grams: 190, ppkg: 420, isLavash: false, section: "burger" },
+  { id: "lavash", name: "Briosh", grams: 75, ppkg: 20, isLavash: true, section: "burger" },
+  { id: "cheese", name: "American cheese", grams: 40, ppkg: 580, isLavash: false, section: "burger" },
+  {
+    id: "onion",
+    name: "Onions",
+    grams: 20,
+    ppkg: 80,
+    isLavash: false,
+    gramsRange: [1, 100],
+    section: "burger",
+  },
+  { id: "greens", name: "Iceberg Lettuce", grams: 35, ppkg: 200, isLavash: false, section: "burger" },
+  { id: "sauce", name: "Sauce", grams: 40, ppkg: 247, isLavash: false, section: "burger" },
   {
     id: "packaging",
     name: "Packaging",
@@ -33,6 +72,16 @@ const DEFAULT_INGREDIENTS = [
     ppkg: 3,
     isLavash: false,
     isPackaging: true,
+    section: "burger",
+  },
+  { id: "potato", name: "Potatoes", grams: 140, ppkg: 200, isLavash: false, section: "fries" },
+  {
+    id: "ayran",
+    name: "Ayran / Uzvar / Lemonade",
+    grams: 200,
+    ppkg: 16,
+    isLavash: true,
+    section: "drinks",
   },
 ];
 
@@ -41,7 +90,7 @@ const DEFAULT_EMPLOYEES = [
   { id: "w1", name: "Worker", salary: 40000 },
 ];
 
-const DEFAULT_RENT = [{ id: "r1", name: "Property", monthly: 25000 }];
+const DEFAULT_RENT = [{ id: "r1", name: "Property", monthly: 20000 }];
 
 const DEFAULT_OPS = [
   { id: "util", name: "Utilities", monthly: 6000, isBank: false },
@@ -53,8 +102,28 @@ const DEFAULT_OPS = [
   { id: "unex", name: "Unexpected", monthly: 12000, isBank: false },
 ];
 
+/** Fries + drinks (potatoes, drinks) are off by default; user enables via row toggles */
+const DEFAULT_INCLUDE_FRIES = false;
+const DEFAULT_INCLUDE_DRINKS = false;
+
+/** Food cost % of revenue: green 28%–55%, red outside that band (too low or too high) */
+function foodCostInTargetBand(fp) {
+  return fp >= 28 && fp <= 55;
+}
+function foodCostPctClass(fp) {
+  return foodCostInTargetBand(fp) ? "good" : "high";
+}
+function foodCostBarFillHex(fp) {
+  return foodCostInTargetBand(fp) ? "#22c55e" : "#ef4444";
+}
+function foodCostBarPctColor(fp) {
+  return foodCostInTargetBand(fp) ? "var(--grn-l)" : "var(--red-l)";
+}
+function foodCostKpiClass(fp) {
+  return foodCostInTargetBand(fp) ? "pos" : "neg";
+}
+
 const cc = (v) => (v < 0 ? "neg" : v < 5 ? "neu" : "pos");
-const hcc = (v) => (v < 0 ? "neg" : v < 5 ? "acc" : "pos");
 
 const marginStatus = (m) => {
   if (m < 0) return "⚠ Loss";
@@ -66,9 +135,11 @@ const marginStatus = (m) => {
 
 export default function FoodCostCalculator() {
   const [currency, setCurrency] = useState("UAH");
-  const [price, setPrice] = useState(290);
+  const [price, setPrice] = useState(300);
   const [items, setItems] = useState(30);
   const [ingredients, setIngredients] = useState(DEFAULT_INGREDIENTS);
+  const [includeFries, setIncludeFries] = useState(DEFAULT_INCLUDE_FRIES);
+  const [includeDrinks, setIncludeDrinks] = useState(DEFAULT_INCLUDE_DRINKS);
   const [ingOpenState, setIngOpenState] = useState(() => {
     const meatIdx = DEFAULT_INGREDIENTS.findIndex((g) => g.id === "meat");
     return meatIdx >= 0 ? { [meatIdx]: true } : {};
@@ -82,18 +153,27 @@ export default function FoodCostCalculator() {
     setChartReady(true);
   }, []);
 
+  const ingredientsForPnl = useMemo(
+    () =>
+      ingredients.filter((ing) =>
+        isIngIncludedInPnl(ing, includeFries, includeDrinks)
+      ),
+    [ingredients, includeFries, includeDrinks]
+  );
+
+  /** P&L “Price” = per-item selling price; toggles nudge it by ±fries/±drinks UAH. */
   const pnl = useMemo(
     () =>
       computePnl({
         price,
         items,
-        ingredients,
+        ingredients: ingredientsForPnl,
         employees,
         rentItems,
         opsItems,
         days: DAYS,
       }),
-    [price, items, ingredients, employees, rentItems, opsItems]
+    [price, items, ingredientsForPnl, employees, rentItems, opsItems]
   );
 
   const {
@@ -108,6 +188,7 @@ export default function FoodCostCalculator() {
   } = pnl;
   const dailyProf = pnl.dailyProf;
   const monthProf = pnl.monthProf;
+  const profitPerItem = pnl.profitPerItem;
   const monthLabor = pnl.monthLabor;
   const monthRent = pnl.monthRent;
   const monthOps = pnl.monthOps;
@@ -117,32 +198,34 @@ export default function FoodCostCalculator() {
     currency === "USD"
       ? "$" + (v * UAH_USD).toFixed(0)
       : "₴" + formatIntLocaleStable(v);
+  const fmtPerItem = (v) =>
+    currency === "USD"
+      ? "$" + (v * UAH_USD).toFixed(2)
+      : "₴" + v.toFixed(2);
   const fUAH = (v) => "₴" + formatIntLocaleStable(v);
   const fUSD = (v) => "$" + (v * UAH_USD).toFixed(0);
 
   const priceT = toSlider("price", price);
   const itemsT = toSlider("items", items);
 
-  const totalIngCost = useMemo(
-    () => ingredients.reduce((s, i) => s + ingCost(i), 0),
-    [ingredients]
-  );
-
   const totalProductWeightG = useMemo(
     () =>
-      ingredients.reduce((s, i) => s + (Number(i.grams) || 0), 0),
-    [ingredients]
+      ingredientsForPnl.reduce(
+        (s, i) => s + (Number(i.grams) || 0),
+        0
+      ),
+    [ingredientsForPnl]
   );
 
   const onMainSlider = (key, t) => {
     const real = fromSlider(key === "price" ? "price" : "items", +t);
-    if (key === "price") setPrice(real);
+    if (key === "price") setPrice(clampPnlSellingPrice(real));
     else setItems(real);
   };
 
   const onMainInput = (key, val) => {
     const v = +val || 0;
-    if (key === "price") setPrice(v);
+    if (key === "price") setPrice(clampPnlSellingPrice(v));
     else setItems(v);
   };
 
@@ -155,8 +238,13 @@ export default function FoodCostCalculator() {
   };
 
   const ingGramsSl = (idx, t) => {
-    const v = fromSlider("grams", +t);
-    patchIngredient(idx, { grams: v });
+    setIngredients((prev) => {
+      const range = prev[idx]?.gramsRange ?? LOG_SCALES.grams;
+      const v = fromSliderRange(+t, range);
+      const n = [...prev];
+      n[idx] = { ...n[idx], grams: v };
+      return n;
+    });
   };
   const ingPpkgSl = (idx, t) => {
     const v = fromSlider("ppkg", +t);
@@ -191,6 +279,7 @@ export default function FoodCostCalculator() {
         ppkg: 100,
         isLavash: false,
         isPackaging: false,
+        section: "burger",
       },
     ]);
     setIngOpenState((prev) => ({ ...prev, [newIdx]: true }));
@@ -232,43 +321,17 @@ export default function FoodCostCalculator() {
   const meterBg =
     margin < 0 ? "var(--red-l)" : margin < 8 ? "var(--accent)" : "var(--grn-l)";
 
-  const spctClass = fp > 45 ? "high" : fp > 35 ? "ok" : "good";
+  const spctClass = foodCostPctClass(fp);
 
   return (
     <>
       <header>
         <div className="hdr-brand">
-          <span className="hdr-icon">🌯</span>
-          <div>
+          <div className="hdr-titles">
             <div className="hdr-name">
-              Fast Food <em>Audit</em>
-            </div>
-            <div className="hdr-sub">Profitability Calculator</div>
-          </div>
-        </div>
-        <div className="hdr-stats">
-          <div className="hdr-stat">
-            <div className="hdr-stat-l">Profit Margin</div>
-            <div className={"hdr-stat-v " + hcc(margin)}>{margin.toFixed(1)}%</div>
-          </div>
-          <div className="hdr-stat">
-            <div className="hdr-stat-l">Daily Profit</div>
-            <div className={"hdr-stat-v " + cc(dailyProf)}>{fmt(dailyProf)}</div>
-          </div>
-          <div className="hdr-stat">
-            <div className="hdr-stat-l">Monthly Profit</div>
-            <div className={"hdr-stat-v " + cc(monthProf)}>{fmt(monthProf)}</div>
-          </div>
-          <div className="hdr-stat">
-            <div className="hdr-stat-l">Food Cost</div>
-            <div className="hdr-stat-v" id="h-food">
-              {fp.toFixed(1)}% FC
-            </div>
-          </div>
-          <div className="hdr-stat">
-            <div className="hdr-stat-l">Break-even</div>
-            <div className="hdr-stat-v" id="h-be">
-              {typeof be === "number" ? be + " items" : be}
+              Margin <em>/</em> Profit <em>/</em> Food Cost <em>/</em> Upsells{" "}
+              <em>/</em> Projections{" "}
+              <span className="hdr-name-cal">Calculator</span>
             </div>
           </div>
         </div>
@@ -300,17 +363,41 @@ export default function FoodCostCalculator() {
           </div>
           <div className="ing-list">
             {ingredients.map((ing, idx) => {
-              const cost = ingCost(ing);
+              const lineCost = ingCost(ing);
+              const inPl = ingredientsForPnl.some((x) => x === ing);
               const pct =
-                totalIngCost > 0 ? (cost / totalIngCost) * 100 : 0;
+                cogsUnit > 0 && inPl
+                  ? (lineCost / cogsUnit) * 100
+                  : 0;
               const open = !!ingOpenState[idx];
-              const gt = toSlider("grams", ing.grams);
+              const gramsRange = ing.gramsRange ?? LOG_SCALES.grams;
+              const gt = toSliderRange(ing.grams, gramsRange);
               const pt = toSlider("ppkg", ing.ppkg);
+              const sec = getIngredientSection(ing);
+              const prevSec =
+                idx > 0 ? getIngredientSection(ingredients[idx - 1]) : null;
+              const showSectionHead = sec !== prevSec && sec === "burger";
+              const isFirstFries = sec === "fries" && prevSec !== "fries";
+              const isFirstDrinks = sec === "drinks" && prevSec !== "drinks";
+              const sectionTitle =
+                INGREDIENT_SECTION_LABELS[sec] || String(sec);
 
               return (
+                <Fragment key={ing.id}>
+                  {showSectionHead ? (
+                    <div className="ing-section-hd" role="presentation">
+                      {sectionTitle}
+                    </div>
+                  ) : null}
                 <div
-                  className={"ing-row" + (open ? " open" : "")}
-                  key={ing.id}
+                  className={
+                    "ing-row" +
+                    (open ? " open" : "") +
+                    (inPl ? "" : " ing-row--excluded") +
+                    (sec !== prevSec && (sec === "fries" || sec === "drinks")
+                      ? " ing-row--section-gap"
+                      : "")
+                  }
                 >
                   <div
                     className="ing-hdr"
@@ -318,7 +405,7 @@ export default function FoodCostCalculator() {
                     onKeyDown={(e) => {
                       if (
                         e.target?.closest?.(
-                          "input, textarea, select, [contenteditable=true]"
+                          "input, textarea, select, [contenteditable=true], .ing-sw, label.ing-sw"
                         )
                       ) {
                         return;
@@ -332,29 +419,111 @@ export default function FoodCostCalculator() {
                     tabIndex={0}
                   >
                     <div className="ing-hdr-nm">
-                      {open ? (
-                        <input
-                          type="text"
-                          className="ing-nm ing-nm--hdr"
-                          value={ing.name}
+                      <div className="ing-hdr-nm-l">
+                        {open ? (
+                          <div
+                            className="ing-nm-clip"
+                            style={{ flex: 1, minWidth: 0 }}
+                          >
+                            <input
+                              type="text"
+                              className="ing-nm ing-nm--hdr"
+                              value={ing.name}
+                              onClick={(e) => e.stopPropagation()}
+                              onChange={(e) =>
+                                patchIngredient(idx, { name: e.target.value })
+                              }
+                              aria-label="Ingredient name"
+                              style={{
+                                width: `${Math.min(
+                                  32,
+                                  Math.max(4, (ing.name || "").length + 1.25)
+                                )}ch`,
+                                maxWidth: "100%",
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <span className="ing-nm ing-nm-clip">{ing.name}</span>
+                        )}
+                        {isFirstFries ? (
+                          <span
+                            className="ing-hdr-selladd"
+                            title="Added to PnL selling price when this section is included"
+                          >
+                            +₴{COMBO_FRIES_ADD_UAH}
+                          </span>
+                        ) : null}
+                        {isFirstDrinks ? (
+                          <span
+                            className="ing-hdr-selladd"
+                            title="Added to PnL selling price when this section is included"
+                          >
+                            +₴{COMBO_DRINK_ADD_UAH}
+                          </span>
+                        ) : null}
+                      </div>
+                      {sec === "fries" ? (
+                        <label
+                          className="ing-sw"
                           onClick={(e) => e.stopPropagation()}
-                          onChange={(e) =>
-                            patchIngredient(idx, { name: e.target.value })
-                          }
-                          aria-label="Ingredient name"
-                          style={{
-                            width: `${Math.min(
-                              32,
-                              Math.max(4, (ing.name || "").length + 1.25)
-                            )}ch`,
-                          }}
-                        />
-                      ) : (
-                        <span className="ing-nm">{ing.name}</span>
-                      )}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            className="ing-sw-input"
+                            role="switch"
+                            checked={includeFries}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              const c = e.target.checked;
+                              if (c === includeFries) return;
+                              setPrice((p) =>
+                                clampPnlSellingPrice(
+                                  p + (c ? COMBO_FRIES_ADD_UAH : -COMBO_FRIES_ADD_UAH)
+                                )
+                              );
+                              setIncludeFries(c);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label="Include fries in product cost"
+                          />
+                          <span className="ing-sw-track" aria-hidden="true" />
+                        </label>
+                      ) : null}
+                      {sec === "drinks" ? (
+                        <label
+                          className="ing-sw"
+                          onClick={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            className="ing-sw-input"
+                            role="switch"
+                            checked={includeDrinks}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              const c = e.target.checked;
+                              if (c === includeDrinks) return;
+                              setPrice((p) =>
+                                clampPnlSellingPrice(
+                                  p + (c ? COMBO_DRINK_ADD_UAH : -COMBO_DRINK_ADD_UAH)
+                                )
+                              );
+                              setIncludeDrinks(c);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label="Include drink in product cost"
+                          />
+                          <span className="ing-sw-track" aria-hidden="true" />
+                        </label>
+                      ) : null}
                     </div>
-                    <span className="ing-cv">₴{cost.toFixed(2)}</span>
-                    <span className="ing-pv">{pct.toFixed(0)}%</span>
+                    <span className="ing-cv">₴{lineCost.toFixed(2)}</span>
+                    <span className="ing-pv">
+                      {inPl ? `${pct.toFixed(0)}%` : "—"}
+                    </span>
                     <span className="ing-chv">▼</span>
                   </div>
                   <div className="ing-body">
@@ -377,7 +546,11 @@ export default function FoodCostCalculator() {
                                 className="w52"
                                 value={ing.grams}
                                 onChange={(e) => {
-                                  const v = +e.target.value || 0;
+                                  let v = +e.target.value || 0;
+                                  if (ing.gramsRange) {
+                                    const [gmin, gmax] = ing.gramsRange;
+                                    v = Math.max(gmin, Math.min(gmax, v));
+                                  }
                                   patchIngredient(idx, { grams: v });
                                 }}
                               />
@@ -440,7 +613,11 @@ export default function FoodCostCalculator() {
                                 className="w52"
                                 value={ing.grams}
                                 onChange={(e) => {
-                                  const v = +e.target.value || 0;
+                                  let v = +e.target.value || 0;
+                                  if (ing.gramsRange) {
+                                    const [gmin, gmax] = ing.gramsRange;
+                                    v = Math.max(gmin, Math.min(gmax, v));
+                                  }
                                   patchIngredient(idx, { grams: v });
                                 }}
                               />
@@ -493,6 +670,7 @@ export default function FoodCostCalculator() {
                     </div>
                   </div>
                 </div>
+                </Fragment>
               );
             })}
           </div>
@@ -537,6 +715,8 @@ export default function FoodCostCalculator() {
               id="in-price"
               className="w88"
               value={price}
+              min={PNL_PRICE_MIN_UAH}
+              max={PNL_PRICE_MAX_UAH}
               onChange={(e) => onMainInput("price", e.target.value)}
             />
           </div>
@@ -590,12 +770,20 @@ export default function FoodCostCalculator() {
           <div className="bar-item">
             <div className="bar-top">
               <span className="bar-nm">Food</span>
-              <span className="bar-pct">{fp.toFixed(1)}%</span>
+              <span
+                className="bar-pct"
+                style={{ color: foodCostBarPctColor(fp) }}
+              >
+                {fp.toFixed(1)}%
+              </span>
             </div>
             <div className="bar-track">
               <div
                 className="bar-fill"
-                style={{ width: setBarW(fp), background: "#ef4444" }}
+                style={{
+                  width: setBarW(fp),
+                  background: foodCostBarFillHex(fp),
+                }}
               />
             </div>
           </div>
@@ -657,6 +845,15 @@ export default function FoodCostCalculator() {
               {typeof be === "number" ? be + " items" : be}
             </span>
           </div>
+          <div className="sr">
+            <span className="sr-l">Profit / item (monthly avg.)</span>
+            <span
+              className="sr-v"
+              style={{ color: getProfitPerItemTextColor(profitPerItem) }}
+            >
+              {profitPerItem == null ? "—" : fmtPerItem(profitPerItem)}
+            </span>
+          </div>
         </div>
 
         <div className="out-panel">
@@ -681,7 +878,7 @@ export default function FoodCostCalculator() {
             <div className="kpi">
               <div className="kpi-l">Food Cost %</div>
               <div
-                className={"kpi-v " + (fp > 45 ? "neg" : "neu")}
+                className={"kpi-v " + foodCostKpiClass(fp)}
                 id="kpi-food-pct"
               >
                 {fp.toFixed(1)}%

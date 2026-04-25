@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fast Food Audit</title>
+<title>Margin / Profit / Food Cost / Upsells / Projections — Calculator</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -26,6 +26,9 @@
   --text:#eef0f6;
   --muted:#5a5e70;
   --label:#8a8fa5;
+  --ing-sw-off:var(--muted);
+  --ing-sw-on:var(--grn-l);
+  --ing-sw-thumb:var(--text);
   --FD:'Bebas Neue',sans-serif;
   --FM:'DM Mono',monospace;
   --FB:'DM Sans',sans-serif;
@@ -49,37 +52,16 @@ header{
   border-right:1px solid var(--border);
   height:100%;
 }
-.hdr-icon{font-size:22px;line-height:1}
+.hdr-titles{min-width:0;flex:0 1 auto}
 .hdr-name{
   font-family:var(--FD);
-  font-size:22px;
-  letter-spacing:3px;
+  font-size:15px;
+  letter-spacing:1.5px;
   color:var(--text);
-  line-height:1;
+  line-height:1.15;
 }
 .hdr-name em{color:var(--accent);font-style:normal}
-.hdr-sub{
-  font-size:9px;color:var(--muted);
-  text-transform:uppercase;letter-spacing:2px;
-  margin-top:2px;
-}
-.hdr-stats{
-  display:flex;align-items:stretch;
-  flex:1;
-  height:100%;
-  padding:0 20px;
-  gap:0;
-}
-.hdr-stat{
-  display:flex;flex-direction:column;justify-content:center;
-  padding:0 18px;
-  border-right:1px solid var(--border);
-  min-width:100px;
-}
-.hdr-stat:first-child{padding-left:0}
-.hdr-stat-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:2px}
-.hdr-stat-v{font-family:var(--FM);font-size:16px;font-weight:500;color:var(--text)}
-.hdr-stat-v.pos{color:var(--grn-l)}.hdr-stat-v.neg{color:var(--red-l)}.hdr-stat-v.acc{color:var(--accent)}
+.hdr-name-cal{font-family:var(--FD);font-size:15px;letter-spacing:1.5px;color:var(--accent);font-style:normal;font-weight:400;margin-left:0.35em;white-space:nowrap}
 .hdr-right{
   display:flex;align-items:center;gap:8px;
   margin-left:auto;
@@ -113,7 +95,7 @@ header{
 .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid var(--border)}
 .sl{font-size:9px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted)}
 .spct{font-family:var(--FM);font-size:14px;font-weight:500;color:var(--text)}
-.spct.high{color:var(--red-l)}.spct.ok{color:var(--accent)}.spct.good{color:var(--grn-l)}
+.spct.high{color:var(--red-l)}.spct.mid{color:var(--label)}.spct.ok{color:var(--accent)}.spct.good{color:var(--grn-l)}
 
 /* ═══ INPUTS ═══ */
 input[type="number"]{
@@ -179,18 +161,34 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--acc-bg)}
 
 /* ═══ INGREDIENT ROWS ═══ */
+.ing-row--excluded{opacity:0.5}
+.ing-row--excluded .ing-cv,.ing-row--excluded .ing-pv{color:var(--muted)}
+/* Compact Material-style switch (fries / drinks in row header) */
+.ing-sw{position:relative;flex:0 0 auto;width:34px;height:18px;cursor:pointer;user-select:none}
+.ing-sw-input{position:absolute;opacity:0;width:0;height:0;margin:0}
+.ing-sw-track{display:block;position:absolute;inset:0;border-radius:999px;background:var(--ing-sw-off);box-shadow:none;transition:background .18s cubic-bezier(0.4,0,0.2,1);pointer-events:none}
+.ing-sw-track::before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ing-sw-thumb);box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.2);transition:transform .2s cubic-bezier(0.4,0,0.2,1)}
+.ing-sw-input:checked + .ing-sw-track{background:var(--ing-sw-on);box-shadow:none}
+.ing-sw-input:checked + .ing-sw-track::before{transform:translateX(16px)}
+.ing-sw-input:focus-visible + .ing-sw-track{box-shadow:0 0 0 2px var(--acc-d)}
+.ing-hdr .ing-nm-clip{min-width:0;flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ing-hdr-nm{min-width:0;max-width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.ing-hdr .ing-hdr-nm{cursor:pointer}
 .ing-list{display:flex;flex-direction:column;gap:2px}
+.ing-section-hd{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--label);padding:4px 2px 6px;margin:0}
+.ing-list .ing-section-hd:not(:first-child){margin-top:8px;padding-top:12px;border-top:1px solid var(--border)}
+.ing-row--section-gap{margin-top:10px}
+.ing-hdr-nm-l{min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:8px}
+.ing-hdr-selladd{box-sizing:border-box;min-height:18px;font-family:var(--FM);font-size:12px;font-weight:600;letter-spacing:0.02em;line-height:1;color:var(--text);opacity:0.88;white-space:nowrap;flex-shrink:0;padding:0 10px 0 2px;display:inline-flex;align-items:center}
 .ing-row{border:1px solid var(--border);border-radius:5px;background:var(--s2);overflow:hidden}
 .ing-row.open{border-color:var(--accent)}
-.ing-hdr{
-  display:grid;grid-template-columns:1fr 52px 46px 16px;
-  align-items:center;gap:4px;padding:5px 8px;cursor:pointer;user-select:none
-}
+.ing-hdr{--ing-hdr-row-h:18px;display:grid;grid-template-columns:1fr 52px 46px 16px;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;user-select:none}
 .ing-hdr:hover{background:var(--acc-bg)}
 .ing-nm{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ing-cv{font-family:var(--FM);font-size:11px;color:var(--accent);text-align:right}
 .ing-pv{font-family:var(--FM);font-size:10px;color:var(--muted);text-align:right}
 .ing-chv{font-size:9px;color:var(--muted);text-align:right;transition:transform .2s}
+.ing-hdr .ing-cv,.ing-hdr .ing-pv,.ing-hdr .ing-chv{min-height:18px;display:flex;align-items:center;justify-content:flex-end;line-height:1;margin:0;padding:0}
 .ing-row.open .ing-chv{transform:rotate(180deg)}
 .ing-body{display:none;padding:8px 10px 10px;border-top:1px solid var(--border);background:var(--s1)}
 .ing-row.open .ing-body{display:block}
@@ -205,7 +203,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .ing-sl-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
 .ing-sl-val{font-family:var(--FM);font-size:11px;color:var(--accent)}
 .ing-sl-row{display:flex;align-items:center;gap:6px}
-/* lavash special: unit price input */
+/* Briosh (isLavash) special: unit price input */
 .lavash-price{display:flex;align-items:center;gap:6px;margin-top:6px}
 
 /* ═══ COST ITEMS ═══ */
@@ -238,7 +236,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .kpi{background:var(--s1);padding:13px 15px}
 .kpi-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px}
 .kpi-v{font-family:var(--FD);font-size:28px;letter-spacing:1px;line-height:1}
-.kpi-v.pos{color:var(--grn-l)}.kpi-v.neg{color:var(--red-l)}.kpi-v.neu{color:var(--accent)}
+.kpi-v.pos{color:var(--grn-l)}.kpi-v.neg{color:var(--red-l)}.kpi-v.neu{color:var(--accent)}.kpi-v.mut{color:var(--label)}
 .kpi-s{font-family:var(--FM);font-size:9px;color:var(--muted);margin-top:3px}
 
 .meter-wrap{background:var(--s2);padding:12px 16px;border-bottom:1px solid var(--border)}
@@ -272,12 +270,12 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .sr-l{font-size:10px;color:var(--label);text-transform:uppercase;letter-spacing:1px}
 .sr-v{font-family:var(--FM);font-size:12px;color:var(--text)}
 .sr-v.acc{color:var(--accent)}.sr-v.grn{color:var(--grn-l)}.sr-v.red{color:var(--red-l)}
+.sr-v.pos{color:var(--grn-l)}.sr-v.neg{color:var(--red-l)}.sr-v.neu{color:var(--accent)}
 
 @media(max-width:1100px){
   .app{grid-template-columns:1fr 1fr}
   .out-panel{grid-column:1/3;grid-row:3}
   .bot-row{grid-column:1/3;grid-template-columns:1fr}
-  .hdr-stats{display:none}
 }
 </style>
 </head>
@@ -286,32 +284,8 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 <!-- ═══ HEADER ═══ -->
 <header>
   <div class="hdr-brand">
-    <span class="hdr-icon">🌯</span>
-    <div>
-      <div class="hdr-name">Fast Food <em>Audit</em></div>
-      <div class="hdr-sub">Profitability Calculator</div>
-    </div>
-  </div>
-  <div class="hdr-stats">
-    <div class="hdr-stat">
-      <div class="hdr-stat-l">Profit Margin</div>
-      <div class="hdr-stat-v acc" id="h-margin">—</div>
-    </div>
-    <div class="hdr-stat">
-      <div class="hdr-stat-l">Daily Profit</div>
-      <div class="hdr-stat-v" id="h-day">—</div>
-    </div>
-    <div class="hdr-stat">
-      <div class="hdr-stat-l">Monthly Profit</div>
-      <div class="hdr-stat-v" id="h-month">—</div>
-    </div>
-    <div class="hdr-stat">
-      <div class="hdr-stat-l">Food Cost</div>
-      <div class="hdr-stat-v" id="h-food">—</div>
-    </div>
-    <div class="hdr-stat">
-      <div class="hdr-stat-l">Break-even</div>
-      <div class="hdr-stat-v" id="h-be">—</div>
+    <div class="hdr-titles">
+      <div class="hdr-name">Margin <em>/</em> Profit <em>/</em> Food Cost <em>/</em> Upsells <em>/</em> Projections <span class="hdr-name-cal">Calculator</span></div>
     </div>
   </div>
   <div class="hdr-right">
@@ -346,12 +320,12 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
       <div>
         <div style="font-size:10px;color:var(--label);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Selling Price / Item</div>
         <div class="ci-sl">
-          <input type="range" id="price-sl" min="0" max="1000" value="580"
-            oninput="mainSlMoved('price',+this.value)" style="--fill:58%">
+          <input type="range" id="price-sl" min="0" max="1000" value="557"
+            oninput="mainSlMoved('price',+this.value)" style="--fill:55.7%">
           <span class="ci-bg" id="price-fc-badge">—</span>
         </div>
       </div>
-      <input type="number" id="price" class="w88" value="290"
+      <input type="number" id="price" class="w88" value="300" min="120" max="620"
         oninput="mainInpTyped('price',+this.value)">
     </div>
 
@@ -398,6 +372,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
     </div>
     <div class="divider"></div>
     <div class="sr"><span class="sr-l">Break-even items/day</span><span class="sr-v acc" id="breakeven">—</span></div>
+    <div class="sr"><span class="sr-l">Profit / item (monthly avg.)</span><span class="sr-v acc" id="profit-per-item">—</span></div>
   </div>
 
   <!-- OUTPUT PANEL -->
@@ -482,7 +457,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 //  - Salary: 5000–150000 UAH   (typical 20k–60k)
 //  - Rent: 3000–200000 UAH     (typical 15k–60k)
 //  - Ops costs: 500–150000 UAH (typical 2k–25k)
-//  - Price/item: 50–2000 UAH   (typical 150–500)
+//  - Price/item: 120–620 UAH   (selling / item, incl. combo)
 //  - Items/day: 10–320 (log; typical ops ~10–150, most of slider travel;
 //     upper end = log tail for higher volume)
 // ════════════════════════════════════════════════════
@@ -494,7 +469,7 @@ const LOG_SCALES = {
   salary:   [5000, 150000],
   rent:     [3000, 200000],
   ops:      [500,  150000],
-  price:    [50,   2000  ],
+  price:    [120,  620   ],
   items:    [10,   320  ],
 };
 
@@ -513,6 +488,24 @@ function fromSlider(scale, t) {
   if (t === 0) return mn;
   if (t === 1000) return mx;
   return Math.round(mn * Math.pow(mx / mn, t / 1000));
+}
+
+function toSliderRange(val, range){
+  const [mn,mx]=range;
+  const v=+val;
+  if(v<=mn) return 0;
+  if(v>=mx) return 1000;
+  return Math.round(Math.log(v/mn)/Math.log(mx/mn)*1000);
+}
+function fromSliderRange(t, range){
+  const [mn,mx]=range;
+  let tt=Math.max(0,Math.min(1000,+t));
+  if(tt===0) return mn;
+  if(tt===1000) return mx;
+  return Math.round(mn*Math.pow(mx/mn,tt/1000));
+}
+function ingGramsRange(ing){
+  return ing.gramsRange || LOG_SCALES.grams;
 }
 
 // Banking fee: linear 0%–10% of monthly revenue; slider 0–1000
@@ -540,16 +533,52 @@ const DAYS    = 30;
 const UAH_USD = 0.024;
 let currency  = 'UAH';
 
-// isLavash: per unit. isPackaging: flat ₴/shawarma, no weight
+// isLavash: per unit. isPackaging: flat ₴/shawarma, no weight. section: burger | fries | drinks
+const ING_SECTION_TIT = { burger: 'Burger', fries: 'Fries', drinks: 'Drinks' };
+const DEFAULT_INCLUDE_FRIES = false;
+const DEFAULT_INCLUDE_DRINKS = false;
+const COMBO_FRIES_ADD_UAH = 75;
+const COMBO_DRINK_ADD_UAH = 35;
+const PNL_PRICE_MIN_UAH = 120;
+const PNL_PRICE_MAX_UAH = 620;
+function clampPnlSell(n){
+  const v=Math.round(Number(n)||0);
+  return Math.max(PNL_PRICE_MIN_UAH,Math.min(PNL_PRICE_MAX_UAH,v));
+}
+let includeFries = DEFAULT_INCLUDE_FRIES;
+let includeDrinks = DEFAULT_INCLUDE_DRINKS;
+function ingIncluded(ing){
+  const s=ing.section||'burger';
+  if(s==='fries' && !includeFries) return false;
+  if(s==='drinks' && !includeDrinks) return false;
+  return true;
+}
+function onIncFries(v){
+  const inp=document.getElementById('price');
+  if(inp){
+    const cur=parseFloat(inp.value)||0;
+    inp.value=clampPnlSell(cur+(v?COMBO_FRIES_ADD_UAH:-COMBO_FRIES_ADD_UAH));
+  }
+  includeFries=v; renderIngredients(); calculate();
+}
+function onIncDrinks(v){
+  const inp=document.getElementById('price');
+  if(inp){
+    const cur=parseFloat(inp.value)||0;
+    inp.value=clampPnlSell(cur+(v?COMBO_DRINK_ADD_UAH:-COMBO_DRINK_ADD_UAH));
+  }
+  includeDrinks=v; renderIngredients(); calculate();
+}
 let ingredients = [
-  {id:'meat',      name:'Meat',       grams:190, ppkg:480,  isLavash:false, isPackaging:false},
-  {id:'lavash',    name:'Lavash',     grams:50,  ppkg:12,   isLavash:true,  isPackaging:false },
-  {id:'cheese',    name:'Cheese',     grams:30,  ppkg:580,  isLavash:false, isPackaging:false},
-  {id:'tomato',    name:'Tomato',     grams:30,  ppkg:252,  isLavash:false, isPackaging:false},
-  {id:'greens',    name:'Greens',     grams:20,  ppkg:200,  isLavash:false, isPackaging:false},
-  {id:'cabbage',   name:'Cabbage',    grams:30,  ppkg:70,   isLavash:false, isPackaging:false},
-  {id:'sauce',     name:'Sauce',      grams:40,  ppkg:247,  isLavash:false, isPackaging:false},
-  {id:'packaging', name:'Packaging',  grams:0,   ppkg:3,    isLavash:false, isPackaging:true},
+  {id:'meat',      name:'Meat',       grams:190, ppkg:420,  isLavash:false, isPackaging:false,  section:'burger'},
+  {id:'lavash',    name:'Briosh',     grams:75,  ppkg:20,   isLavash:true,  isPackaging:false,  section:'burger'},
+  {id:'cheese',    name:'American cheese',     grams:40,  ppkg:580,  isLavash:false, isPackaging:false,  section:'burger'},
+  {id:'onion',     name:'Onions',     grams:20,  ppkg:80,   isLavash:false, isPackaging:false, gramsRange:[1,100],  section:'burger'},
+  {id:'greens',    name:'Iceberg Lettuce', grams:35,  ppkg:200,  isLavash:false, isPackaging:false,  section:'burger'},
+  {id:'sauce',     name:'Sauce',      grams:40,  ppkg:247,  isLavash:false, isPackaging:false,  section:'burger'},
+  {id:'packaging', name:'Packaging',  grams:0,   ppkg:3,    isLavash:false, isPackaging:true,  section:'burger'},
+  {id:'potato',    name:'Potatoes',   grams:140, ppkg:200,  isLavash:false, isPackaging:false,  section:'fries'},
+  {id:'ayran',     name:'Ayran / Uzvar / Lemonade', grams:200, ppkg:16,  isLavash:true,  isPackaging:false,  section:'drinks'},
 ];
 let ingOpen = {};
 
@@ -558,7 +587,7 @@ let employees = [
   {id:'w1',    name:'Worker', salary:40000},
 ];
 let rentItems = [
-  {id:'r1', name:'Property', monthly:25000},
+  {id:'r1', name:'Property', monthly:20000},
 ];
 let opsItems = [
   {id:'util', name:'Utilities',   monthly:6000,  isBank:false},
@@ -607,28 +636,57 @@ function setCurrency(c){
 const fmt  = v => currency==='USD' ? '$'+(v*UAH_USD).toFixed(0) : '₴'+Math.round(v).toLocaleString();
 const fUAH = v => '₴'+Math.round(v).toLocaleString();
 const fUSD = v => '$'+(v*UAH_USD).toFixed(0);
+const fUSD2= v => '$'+(v*UAH_USD).toFixed(2);
 const fmtK = v => v>=1000?(v/1000).toFixed(v>=10000?0:1)+'k':String(Math.round(v));
+// Profit / item: &lt;20 var(--red-l), 20–30 var(--accent), ≥30 var(--grn-l) (match lib/profitItemColor.js)
+function getProfitPerItemTextColor(ua){
+  if(ua==null||isNaN(+ua)) return 'var(--muted)';
+  const p=+ua;
+  if(p<20) return 'var(--red-l)';
+  if(p<30) return 'var(--accent)';
+  return 'var(--grn-l)';
+}
 const gv   = id => parseFloat(document.getElementById(id)?.value)||0;
 const setTx= (id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
 const setCl= (id,c)=>{ const e=document.getElementById(id); if(e) e.className='kpi-v '+c; };
-const setHCl=(id,c)=>{ const e=document.getElementById(id); if(e) e.className='hdr-stat-v '+c; };
 
 // ════════════════════════════════════════════════════
 //  MAIN SLIDERS (Price & Items) — logarithmic
 // ════════════════════════════════════════════════════
 function mainSlMoved(key, t){
-  const scale = key==='price' ? 'price' : 'items';
-  const real  = fromSlider(scale, t);
-  const inp   = document.getElementById(key);
-  if(inp) inp.value = real;
-  updateSliderFill(document.getElementById(key+'-sl'), t);
+  if(key==='price'){
+    let real=fromSlider('price',+t);
+    real=clampPnlSell(real);
+    const tOut=toSlider('price',real);
+    const inp=document.getElementById('price');
+    if(inp) inp.value=real;
+    const sl=document.getElementById('price-sl');
+    if(sl){ sl.value=tOut; updateSliderFill(sl,tOut); }
+  } else {
+    const real=fromSlider('items',+t);
+    const inp=document.getElementById('items');
+    if(inp) inp.value=real;
+    const sl=document.getElementById('items-sl');
+    if(sl){ sl.value=+t; updateSliderFill(sl,+t); }
+  }
   calculate();
 }
 function mainInpTyped(key, val){
-  const scale = key==='price' ? 'price' : 'items';
-  const t     = toSlider(scale, val);
-  const sl    = document.getElementById(key+'-sl');
-  if(sl){ sl.value = t; updateSliderFill(sl, t); }
+  if(key==='price'){
+    const v=clampPnlSell(val);
+    const inp=document.getElementById('price');
+    if(inp) inp.value=v;
+    const t=toSlider('price',v);
+    const sl=document.getElementById('price-sl');
+    if(sl){ sl.value=t; updateSliderFill(sl,t); }
+  } else {
+    const v=+val||0;
+    const inp=document.getElementById('items');
+    if(inp) inp.value=v;
+    const t=toSlider('items',v);
+    const sl=document.getElementById('items-sl');
+    if(sl){ sl.value=t; updateSliderFill(sl,t); }
+  }
   calculate();
 }
 
@@ -636,7 +694,8 @@ function mainInpTyped(key, val){
 //  INGREDIENT SLIDERS — no re-render on slide
 // ════════════════════════════════════════════════════
 function ingGramsSl(idx, t){
-  const v = fromSlider('grams', +t);
+  const range = ingGramsRange(ingredients[idx]);
+  const v = fromSliderRange(+t, range);
   ingredients[idx].grams = v;
   updateSliderFill(document.getElementById('ig-gsl-'+idx), +t);
   const inp = document.getElementById('ig-g-'+idx);
@@ -647,9 +706,13 @@ function ingGramsSl(idx, t){
   calculate();
 }
 function ingGramsInp(idx, val){
-  const v = +val||0;
+  const range = ingGramsRange(ingredients[idx]);
+  let v = +val||0;
+  if(ingredients[idx].gramsRange){
+    v = Math.max(range[0], Math.min(range[1], v));
+  }
   ingredients[idx].grams = v;
-  const t = toSlider('grams', v);
+  const t = toSliderRange(v, range);
   const sl = document.getElementById('ig-gsl-'+idx);
   if(sl){ sl.value=t; updateSliderFill(sl,t); }
   const lbl = document.getElementById('ig-glbl-'+idx);
@@ -679,7 +742,7 @@ function ingPpkgInp(idx, val){
   _patchIngHdr(idx);
   calculate();
 }
-// Lavash: price per unit (fixed input, no slider)
+// Briosh: price per unit (fixed input, no slider)
 function ingUnitPriceInp(idx, val){
   ingredients[idx].ppkg = +val||0;
   _patchIngHdr(idx);
@@ -691,13 +754,15 @@ function ingNameInp(idx, val){
   if(nm) nm.textContent = val;
 }
 function _patchIngHdr(idx){
-  const totalCost = ingredients.reduce((s,i)=>s+ingCost(i),0);
-  const cost = ingCost(ingredients[idx]);
-  const pct  = totalCost>0 ? cost/totalCost*100 : 0;
+  const totalAct = ingredients.filter(ingIncluded).reduce((s,i)=>s+ingCost(i),0);
+  const ing=ingredients[idx];
+  const cost=ingCost(ing);
+  const inPl=ingIncluded(ing);
+  const pct= totalAct>0 && inPl ? cost/totalAct*100 : 0;
   const row  = document.getElementById('ing-row-'+idx);
   if(!row) return;
   const cv=row.querySelector('.ing-cv'); if(cv) cv.textContent='₴'+cost.toFixed(2);
-  const pv=row.querySelector('.ing-pv'); if(pv) pv.textContent=pct.toFixed(0)+'%';
+  const pv=row.querySelector('.ing-pv'); if(pv) pv.textContent=inPl?pct.toFixed(0)+'%':'—';
 }
 
 // cost of one ingredient per shawarma
@@ -786,21 +851,46 @@ function toggleIng(idx){
 }
 
 function renderIngredients(){
-  const totalCost=ingredients.reduce((s,i)=>s+ingCost(i),0);
   const c=document.getElementById('ing-container');
+  const totalAct=ingredients.filter(ingIncluded).reduce((s,i)=>s+ingCost(i),0);
   c.innerHTML='';
   ingredients.forEach((ing,idx)=>{
-    const cost=ingCost(ing);
-    const pct=totalCost>0?cost/totalCost*100:0;
+    const inPl=ingIncluded(ing);
+    const lineCost=ingCost(ing);
+    const pct=totalAct>0 && inPl?lineCost/totalAct*100:0;
     const open=!!ingOpenState[idx];
-    const gt=toSlider('grams',ing.grams);
+    const gr=ingGramsRange(ing);
+    const gt=toSliderRange(ing.grams, gr);
     const pt=toSlider('ppkg',ing.ppkg);
+    const sec = ing.section || 'burger';
+    const psec = idx>0 ? (ingredients[idx-1].section || 'burger') : null;
+    if(sec !== psec && sec==='burger'){
+      const sh = document.createElement('div');
+      sh.className = 'ing-section-hd';
+      sh.setAttribute('role', 'presentation');
+      sh.textContent = ING_SECTION_TIT[sec] || sec;
+      c.appendChild(sh);
+    }
+
+    const selladdHtml = (sec==='fries' && psec!=='fries')
+      ? '<span class="ing-hdr-selladd" title="Added to PnL selling price when this section is included">+₴'+COMBO_FRIES_ADD_UAH+'</span>'
+      : (sec==='drinks' && psec!=='drinks')
+        ? '<span class="ing-hdr-selladd" title="Added to PnL selling price when this section is included">+₴'+COMBO_DRINK_ADD_UAH+'</span>'
+        : '';
+
+    let swHtml = '';
+    if (sec === 'fries') {
+      swHtml = '<label class="ing-sw" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()"><input type="checkbox" class="ing-sw-input" role="switch" ' + (includeFries ? 'checked ' : '') + 'onchange="onIncFries(this.checked)" onclick="event.stopPropagation()" aria-label="Include fries in product cost"><span class="ing-sw-track" aria-hidden="true"></span></label>';
+    } else if (sec === 'drinks') {
+      swHtml = '<label class="ing-sw" onclick="event.stopPropagation()" onpointerdown="event.stopPropagation()"><input type="checkbox" class="ing-sw-input" role="switch" ' + (includeDrinks ? 'checked ' : '') + 'onchange="onIncDrinks(this.checked)" onclick="event.stopPropagation()" aria-label="Include drinks in product cost"><span class="ing-sw-track" aria-hidden="true"></span></label>';
+    }
 
     const row=document.createElement('div');
-    row.className='ing-row'+(open?' open':'');
+    const gapCls = (sec !== psec && (sec==='fries' || sec==='drinks')) ? ' ing-row--section-gap' : '';
+    row.className='ing-row'+(open?' open':'')+(!inPl?' ing-row--excluded':'')+gapCls;
     row.id='ing-row-'+idx;
 
-    // Body content differs: lavash has unit price input, others have dual sliders
+    // Body content differs: Briosh has unit price input, others have dual sliders
     let bodyContent;
     if(ing.isLavash){
       bodyContent=`
@@ -870,9 +960,15 @@ function renderIngredients(){
 
     row.innerHTML=`
       <div class="ing-hdr" onclick="toggleIng(${idx})">
-        <span class="ing-nm">${ing.name}</span>
-        <span class="ing-cv">₴${cost.toFixed(2)}</span>
-        <span class="ing-pv">${pct.toFixed(0)}%</span>
+        <div class="ing-hdr-nm">
+          <div class="ing-hdr-nm-l">
+            <span class="ing-nm ing-nm-clip">${ing.name}</span>
+            ${selladdHtml}
+          </div>
+          ${swHtml}
+        </div>
+        <span class="ing-cv">₴${lineCost.toFixed(2)}</span>
+        <span class="ing-pv">${inPl?pct.toFixed(0)+'%':'—'}</span>
         <span class="ing-chv">▼</span>
       </div>
       <div class="ing-body">
@@ -897,7 +993,7 @@ function removeIngredient(idx){
   renderIngredients(); calculate();
 }
 function addIngredient(){
-  ingredients.push({id:'i'+Date.now(),name:'New Item',grams:50,ppkg:100,isLavash:false,isPackaging:false});
+  ingredients.push({id:'i'+Date.now(),name:'New Item',grams:50,ppkg:100,isLavash:false,isPackaging:false,section:'burger'});
   ingOpenState[ingredients.length-1]=true;
   renderIngredients(); calculate();
 }
@@ -1017,14 +1113,30 @@ const ms = m=>{
   return '★ Excellent';
 };
 
+function foodInBand(fp){
+  return fp>=28 && fp<=55;
+}
+function foodCostClass(fp){
+  return foodInBand(fp)?'good':'high';
+}
+function foodCostKpiClass(fp){
+  return foodInBand(fp)?'pos':'neg';
+}
+function foodCostBarFill(fp){
+  return foodInBand(fp)?'#22c55e':'#ef4444';
+}
+function foodCostBarPctColor(fp){
+  return foodInBand(fp)?'var(--grn-l)':'var(--red-l)';
+}
+
 function calculate(){
-  const price  = gv('price');
+  const selling  = clampPnlSell(gv('price'));
   const items  = gv('items');
 
-  const dailyRev   = price*items;
+  const dailyRev   = selling*items;
   const monthRev   = dailyRev*DAYS;
 
-  const cogsUnit   = ingredients.reduce((s,i)=>s+ingCost(i),0);
+  const cogsUnit   = ingredients.filter(ingIncluded).reduce((s,i)=>s+ingCost(i),0);
   const dailyFood  = cogsUnit*items;
   const monthFood  = dailyFood*DAYS;
 
@@ -1044,8 +1156,8 @@ function calculate(){
 
   const fixedM     = monthLabor+monthRent+opsItems.reduce((s,op)=>op.isBank?s:s+op.monthly,0);
   const bankRate   = opsItems.filter(o=>o.isBank).reduce((s,o)=>s+Number(o.monthly),0)/100;
-  const varUnit    = cogsUnit+price*bankRate;
-  const contrib    = price-varUnit;
+  const varUnit    = cogsUnit+selling*bankRate;
+  const contrib    = selling-varUnit;
   const be         = contrib>0?Math.ceil((fixedM/DAYS)/contrib):'∞';
 
   const fp=dailyRev>0?dailyFood/dailyRev*100:0;
@@ -1055,12 +1167,16 @@ function calculate(){
 
   // food panel
   const fpd=document.getElementById('food-pct-disp');
-  if(fpd){fpd.textContent=fp.toFixed(1)+'%';fpd.className='spct '+(fp>45?'high':fp>35?'ok':'good');}
+  if(fpd){fpd.textContent=fp.toFixed(1)+'%';fpd.className='spct '+foodCostClass(fp);}
   setTx('cogs-per-item', currency==='USD'?fUSD(cogsUnit):'₴'+cogsUnit.toFixed(2));
   setTx('monthly-food', fmt(monthFood));
 
   // badges
-  setTx('price-fc-badge', price>0?(cogsUnit/price*100).toFixed(0)+'% FC':'—');
+  const pfc=document.getElementById('price-fc-badge');
+  if(pfc){
+    pfc.textContent=selling>0?(cogsUnit/selling*100).toFixed(0)+'% FC':'—';
+    pfc.style.color=selling>0?foodCostBarPctColor(fp):'';
+  }
   setTx('items-rev-badge', fmt(dailyRev));
 
   // snapshot
@@ -1076,12 +1192,28 @@ function calculate(){
     if(p) p.textContent=pct.toFixed(1)+'%';
   };
   setBar('food',fp);setBar('labor',lp);setBar('rent',rp);setBar('ops',op);
+  const bfood=document.getElementById('b-food');
+  const bpfood=document.getElementById('b-food-pct');
+  if(bfood) bfood.style.background=foodCostBarFill(fp);
+  if(bpfood) bpfood.style.color=foodCostBarPctColor(fp);
   const bpf=document.getElementById('b-profit');
   const bpp=document.getElementById('b-profit-pct');
   if(bpf) bpf.style.width=Math.min(Math.max(margin,0),100)+'%';
   if(bpp) bpp.textContent=margin.toFixed(1)+'%';
 
   setTx('breakeven', typeof be==='number'?be+' items':be);
+  const profitPI = (items*DAYS)>0 ? monthProf/(items*DAYS) : null;
+  const ppiEl=document.getElementById('profit-per-item');
+  if(ppiEl){
+    ppiEl.className='sr-v';
+    if(profitPI===null){
+      ppiEl.textContent='—';
+      ppiEl.style.color='var(--muted)';
+    } else {
+      ppiEl.textContent=currency==='USD'?fUSD2(profitPI):'₴'+profitPI.toFixed(2);
+      ppiEl.style.color=getProfitPerItemTextColor(profitPI);
+    }
+  }
 
   // labor / rent
   setTx('labor-total',fmt(monthLabor)); setTx('labor-rev-pct',lp.toFixed(1)+'%');
@@ -1093,9 +1225,9 @@ function calculate(){
 
   // KPIs
   setCl('kpi-margin',cc(margin)); setTx('kpi-margin',margin.toFixed(1)+'%'); setTx('kpi-margin-s',ms(margin));
-  setCl('kpi-day',cc(dailyProf)); setTx('kpi-day',fmt(dailyProf)); setTx('kpi-day-s',items+' × '+fmt(price));
+  setCl('kpi-day',cc(dailyProf)); setTx('kpi-day',fmt(dailyProf)); setTx('kpi-day-s',items+' × '+fmt(selling));
   setCl('kpi-month',cc(monthProf)); setTx('kpi-month',fmt(monthProf));
-  setCl('kpi-food-pct',fp>45?'neg':'neu'); setTx('kpi-food-pct',fp.toFixed(1)+'%');
+  setCl('kpi-food-pct',foodCostKpiClass(fp)); setTx('kpi-food-pct',fp.toFixed(1)+'%');
 
   // meter
   const mw=((Math.min(Math.max(margin,-5),30)+5)/35)*100;
@@ -1109,19 +1241,12 @@ function calculate(){
   setTx('p-y-uah',fUAH(monthProf*12)); setTx('p-y-usd',fUSD(monthProf*12));
   setTx('p-5y-uah',fUAH(monthProf*60)); setTx('p-5y-usd',fUSD(monthProf*60));
 
-  // header stats
-  const hcc=v=>v<0?'neg':v<5?'acc':'pos';
-  setHCl('h-margin',hcc(margin)); setTx('h-margin',margin.toFixed(1)+'%');
-  setHCl('h-day',cc(dailyProf)); setTx('h-day',fmt(dailyProf));
-  setHCl('h-month',cc(monthProf)); setTx('h-month',fmt(monthProf));
-  setTx('h-food',fp.toFixed(1)+'% FC');
-  setTx('h-be', typeof be==='number'?be+' items':be);
-
   // donut
   if(chart){
     const tot=dailyFood+dailyLabor+dailyRent+dailyOps+Math.max(dailyProf,0);
     const s=v=>tot>0?v/tot*100:0;
     chart.data.datasets[0].data=[s(dailyFood),s(dailyLabor),s(dailyRent),s(dailyOps),s(Math.max(dailyProf,0))];
+    chart.data.datasets[0].backgroundColor[0]='#ef4444';
     chart.update();
   }
 }
@@ -1132,9 +1257,9 @@ function calculate(){
 function init(){
   // set price & items sliders to match default real values
   const psl=document.getElementById('price-sl');
-  const pt=toSlider('price',290);
+  const pt=toSlider('price',300);
   if(psl){psl.value=pt;updateSliderFill(psl,pt);}
-  document.getElementById('price').value=290;
+  document.getElementById('price').value=300;
 
   const isl=document.getElementById('items-sl');
   const it=toSlider('items',30);

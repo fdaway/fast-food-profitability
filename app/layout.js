@@ -23,9 +23,9 @@ const fontSans = DM_Sans({
 });
 
 export const metadata = {
-  title: "Fast Food Audit — Profitability Calculator",
+  title: "Margin / Profit / Food Cost / Upsells / Projections — Calculator",
   description:
-    "Estimate margins, food cost, break-even volume, and P&L for quick-service food businesses.",
+    "Model margin, profit, food cost, upsell add-ons, and volume/revenue projections with break-even and P&L for food businesses.",
 };
 
 export default function RootLayout({ children }) {
