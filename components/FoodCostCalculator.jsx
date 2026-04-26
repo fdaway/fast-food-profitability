@@ -114,7 +114,7 @@ function foodCostPctClass(fp) {
   return foodCostInTargetBand(fp) ? "good" : "high";
 }
 function foodCostBarFillHex(fp) {
-  return foodCostInTargetBand(fp) ? "#22c55e" : "#ef4444";
+  return foodCostInTargetBand(fp) ? "#16a34a" : "#ef4444";
 }
 function foodCostBarPctColor(fp) {
   return foodCostInTargetBand(fp) ? "var(--grn-l)" : "var(--red-l)";
@@ -393,7 +393,7 @@ export default function FoodCostCalculator() {
                   className={
                     "ing-row" +
                     (open ? " open" : "") +
-                    (inPl ? "" : " ing-row--excluded") +
+                    (inPl ? "" : " ing-row--pnl-off") +
                     (sec !== prevSec && (sec === "fries" || sec === "drinks")
                       ? " ing-row--section-gap"
                       : "")
@@ -520,8 +520,18 @@ export default function FoodCostCalculator() {
                         </label>
                       ) : null}
                     </div>
-                    <span className="ing-cv">₴{lineCost.toFixed(2)}</span>
-                    <span className="ing-pv">
+                    <span
+                      className={
+                        "ing-cv" + (!inPl ? " ing-cost-muted" : "")
+                      }
+                    >
+                      ₴{lineCost.toFixed(2)}
+                    </span>
+                    <span
+                      className={
+                        "ing-pv" + (!inPl ? " ing-cost-muted" : "")
+                      }
+                    >
                       {inPl ? `${pct.toFixed(0)}%` : "—"}
                     </span>
                     <span className="ing-chv">▼</span>
@@ -563,7 +573,9 @@ export default function FoodCostCalculator() {
                             <div className="ing-sl-inline">
                               <input
                                 type="number"
-                                className="w60"
+                                className={
+                                  "w60" + (!inPl ? " ing-cost-inp" : "")
+                                }
                                 value={ing.ppkg}
                                 onChange={(e) =>
                                   patchIngredient(idx, {
@@ -636,15 +648,17 @@ export default function FoodCostCalculator() {
                             />
                             <div className="ing-sl-ctl">
                               <span className="ing-sl-label">Price / kg (₴)</span>
-                              <input
-                                type="number"
-                                className="w60"
-                                value={ing.ppkg}
-                                onChange={(e) => {
-                                  const v = +e.target.value || 0;
-                                  patchIngredient(idx, { ppkg: v });
-                                }}
-                              />
+                            <input
+                              type="number"
+                              className={
+                                "w60" + (!inPl ? " ing-cost-inp" : "")
+                              }
+                              value={ing.ppkg}
+                              onChange={(e) => {
+                                const v = +e.target.value || 0;
+                                patchIngredient(idx, { ppkg: v });
+                              }}
+                            />
                             </div>
                           </div>
                         </div>
@@ -833,7 +847,7 @@ export default function FoodCostCalculator() {
                 className="bar-fill"
                 style={{
                   width: setBarW(margin),
-                  background: "#22c55e",
+                  background: "var(--grn-l)",
                 }}
               />
             </div>
@@ -989,7 +1003,7 @@ export default function FoodCostCalculator() {
             </div>
             <div className="sh" style={{ marginTop: 4, marginBottom: 10 }}>
               <span className="sl">Monthly total</span>
-              <span className="spct">{fUAH(monthLabor)}</span>
+              <span className="spct spct-total">{fUAH(monthLabor)}</span>
             </div>
             {employees.map((e, idx) => {
               const t = toSlider("salary", e.salary);
@@ -1076,7 +1090,7 @@ export default function FoodCostCalculator() {
             </div>
             <div className="sh" style={{ marginTop: 4, marginBottom: 10 }}>
               <span className="sl">Monthly total</span>
-              <span className="spct">{fmt(monthRent)}</span>
+              <span className="spct spct-total">{fmt(monthRent)}</span>
             </div>
             {rentItems.map((r, idx) => {
               const t = toSlider("rent", r.monthly);
@@ -1163,7 +1177,7 @@ export default function FoodCostCalculator() {
             </div>
             <div className="sh" style={{ marginTop: 4, marginBottom: 10 }}>
               <span className="sl">Monthly total</span>
-              <span className="spct">{fUAH(monthOps)}</span>
+              <span className="spct spct-total">{fUAH(monthOps)}</span>
             </div>
             {opsItems.map((op, idx) => {
               const bankVal = op.isBank

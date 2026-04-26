@@ -10,8 +10,9 @@ import { Doughnut } from "react-chartjs-2";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const COLORS = ["#ef4444", "#f5a623", "#3b82f6", "#a855f7", "#22c55e"];
-const BORDER = "#131417";
+const COLORS = ["#ef4444", "#f5a623", "#3b82f6", "#a855f7", "#16a34a"];
+const BORDER = "#ffffff";
+const LEGEND_MUTED = "#374151";
 
 export default function CostDonut({ data, foodColor }) {
   const colors = foodColor ? [foodColor, ...COLORS.slice(1)] : COLORS;
@@ -38,7 +39,7 @@ export default function CostDonut({ data, foodColor }) {
             display: true,
             position: "bottom",
             labels: {
-              color: "#5a5e70",
+              color: LEGEND_MUTED,
               font: { family: "'DM Mono', monospace", size: 9 },
               boxWidth: 9,
               padding: 6,

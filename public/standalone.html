@@ -4,38 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Margin / Profit / Food Cost / Upsells / Projections — Calculator</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#0c0d0f;
-  --s1:#131417;
-  --s2:#1a1b1f;
-  --s3:#21232a;
-  --border:#2c2e38;
-  --border2:#3a3d4a;
-  --accent:#f5a623;
-  --acc-d:#c8860d;
-  --acc-bg:#1e1608;
+  --bg:#f0f0f2;
+  --s1:#ffffff;
+  --s2:#f8f8f9;
+  --s3:#f0f1f3;
+  --border:#c8ccd4;
+  --border2:#9ca3af;
+  --accent:#c2410c;
+  --acc-d:#9a3412;
+  --acc-bg:#ffedd5;
   --green:#16a34a;
-  --grn-l:#22c55e;
+  --grn-l:#15803d;
   --red:#dc2626;
-  --red-l:#ef4444;
+  --red-l:#dc2626;
   --blue:#2563eb;
   --purple:#7c3aed;
-  --text:#eef0f6;
-  --muted:#5a5e70;
-  --label:#8a8fa5;
-  --ing-sw-off:var(--muted);
-  --ing-sw-on:var(--grn-l);
-  --ing-sw-thumb:var(--text);
+  --text:#030712;
+  --muted:#4b5563;
+  --label:#374151;
+  --ing-sw-off:#d1d5db;
+  --ing-sw-on:#16a34a;
+  --ing-sw-thumb:#ffffff;
   --FD:'Bebas Neue',sans-serif;
   --FM:'DM Mono',monospace;
   --FB:'DM Sans',sans-serif;
+  --font-fi:'Inter',ui-sans-serif,system-ui,sans-serif;
+  --FN:var(--font-fi);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--bg);color:var(--text);font-family:var(--FB);overflow-x:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--FB);overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
 
 /* ═══ HEADER ═══ */
 header{
@@ -44,12 +46,13 @@ header{
   height:56px;
   display:flex;align-items:center;gap:0;
   position:sticky;top:0;z-index:200;
-  border-bottom:1px solid var(--border);
+  border-bottom:1px solid var(--border2);
+  box-shadow:0 1px 0 rgba(0,0,0,.06);
 }
 .hdr-brand{
   display:flex;align-items:center;gap:10px;
   padding-right:24px;
-  border-right:1px solid var(--border);
+  border-right:1px solid var(--border2);
   height:100%;
 }
 .hdr-titles{min-width:0;flex:0 1 auto}
@@ -66,15 +69,16 @@ header{
   display:flex;align-items:center;gap:8px;
   margin-left:auto;
   padding-left:20px;
-  border-left:1px solid var(--border);
+  border-left:1px solid var(--border2);
   height:100%;
 }
 .cur-btn{
-  background:var(--s3);border:1px solid var(--border2);color:var(--muted);
-  font-family:var(--FM);font-size:11px;padding:5px 11px;border-radius:4px;
+  background:var(--s1);border:1px solid var(--border2);color:var(--muted);
+  font-family:var(--FM);font-size:11px;padding:5px 11px;border-radius:6px;
   cursor:pointer;transition:all .15s
 }
-.cur-btn.active{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.cur-btn:hover{border-color:var(--border2);color:var(--text)}
+.cur-btn.active{background:#111827;color:#fff;border-color:#111827;font-weight:600}
 
 /* ═══ APP GRID ═══ */
 .app{
@@ -84,7 +88,7 @@ header{
   gap:1px;background:var(--border);
   min-height:calc(100vh - 56px);
 }
-.panel{background:var(--s1);padding:16px 18px}
+.panel{background:var(--s1);padding:16px 18px;box-shadow:0 1px 0 rgba(0,0,0,.08)}
 .ptitle{
   font-family:var(--FD);font-size:15px;letter-spacing:3px;
   color:var(--accent);margin-bottom:12px;
@@ -93,8 +97,9 @@ header{
 
 /* section head */
 .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;padding-bottom:7px;border-bottom:1px solid var(--border)}
-.sl{font-size:9px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted)}
-.spct{font-family:var(--FM);font-size:14px;font-weight:500;color:var(--text)}
+.sl{font-size:9px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--label)}
+.spct{font-family:var(--FM);font-size:14px;font-weight:500;color:var(--text);font-feature-settings:"tnum" 1}
+.spct-total{font-family:var(--FN);font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1,"lnum" 1;letter-spacing:-.02em}
 .spct.high{color:var(--red-l)}.spct.mid{color:var(--label)}.spct.ok{color:var(--accent)}.spct.good{color:var(--grn-l)}
 
 /* ═══ INPUTS ═══ */
@@ -107,7 +112,7 @@ input[type="number"]{
 }
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:none}
-input[type="number"]:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(245,166,35,.18)}
+input[type="number"]:focus{outline:none;border-color:var(--border2);box-shadow:0 0 0 2px rgba(0,0,0,.05),0 0 0 1px var(--accent)}
 input[type="number"].w80{width:80px}
 input[type="number"].w88{width:88px}
 input[type="number"].w60{width:60px}
@@ -135,13 +140,14 @@ input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
   background:var(--accent);cursor:pointer;
   border:2px solid var(--s1);
-  box-shadow:0 0 0 1px var(--acc-d);
+  box-shadow:0 0 0 1px var(--acc-d),0 1px 2px rgba(0,0,0,.12);
   transition:transform .1s
 }
 input[type="range"]::-webkit-slider-thumb:active{transform:scale(1.25)}
 input[type="range"]::-moz-range-thumb{
   width:14px;height:14px;border-radius:50%;background:var(--accent);
-  cursor:pointer;border:2px solid var(--s1)
+  cursor:pointer;border:2px solid var(--s1);
+  box-shadow:0 0 0 1px var(--acc-d),0 1px 2px rgba(0,0,0,.12);
 }
 input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradient(to right,var(--border2),var(--border2))}
 
@@ -151,23 +157,25 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
   font-size:11px;padding:3px 5px;border-radius:3px;flex-shrink:0;
   transition:color .15s,background .15s
 }
-.del-btn:hover{color:var(--red-l);background:#1a0808}
+.del-btn:hover{color:var(--red-l);background:rgba(239,68,68,.08)}
 .add-btn{
   background:none;border:1px dashed var(--border2);color:var(--muted);
   width:100%;padding:6px;border-radius:4px;cursor:pointer;
   font-size:10px;font-family:var(--FB);letter-spacing:1px;
   transition:all .15s;margin-top:5px
 }
-.add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--acc-bg)}
+.add-btn:hover{border-color:var(--border2);color:var(--text);background:var(--s3)}
 
 /* ═══ INGREDIENT ROWS ═══ */
-.ing-row--excluded{opacity:0.5}
-.ing-row--excluded .ing-cv,.ing-row--excluded .ing-pv{color:var(--muted)}
+.ing-row--pnl-off .ing-cost-muted{color:var(--muted);opacity:.88}
+.ing-row--pnl-off .ing-body input.ing-cost-inp{color:var(--muted);opacity:.92}
+.ing-row--pnl-off .ing-body input.ing-cost-inp:focus{opacity:1;color:var(--text)}
+.ing-row--pnl-off .ing-body .ing-sl-val.ing-cost-muted{color:var(--muted);opacity:.88}
 /* Compact Material-style switch (fries / drinks in row header) */
 .ing-sw{position:relative;flex:0 0 auto;width:34px;height:18px;cursor:pointer;user-select:none}
 .ing-sw-input{position:absolute;opacity:0;width:0;height:0;margin:0}
 .ing-sw-track{display:block;position:absolute;inset:0;border-radius:999px;background:var(--ing-sw-off);box-shadow:none;transition:background .18s cubic-bezier(0.4,0,0.2,1);pointer-events:none}
-.ing-sw-track::before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ing-sw-thumb);box-shadow:0 1px 3px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.2);transition:transform .2s cubic-bezier(0.4,0,0.2,1)}
+.ing-sw-track::before{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--ing-sw-thumb);box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.08);transition:transform .2s cubic-bezier(0.4,0,0.2,1)}
 .ing-sw-input:checked + .ing-sw-track{background:var(--ing-sw-on);box-shadow:none}
 .ing-sw-input:checked + .ing-sw-track::before{transform:translateX(16px)}
 .ing-sw-input:focus-visible + .ing-sw-track{box-shadow:0 0 0 2px var(--acc-d)}
@@ -179,28 +187,28 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .ing-list .ing-section-hd:not(:first-child){margin-top:8px;padding-top:12px;border-top:1px solid var(--border)}
 .ing-row--section-gap{margin-top:10px}
 .ing-hdr-nm-l{min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:8px}
-.ing-hdr-selladd{box-sizing:border-box;min-height:18px;font-family:var(--FM);font-size:12px;font-weight:600;letter-spacing:0.02em;line-height:1;color:var(--text);opacity:0.88;white-space:nowrap;flex-shrink:0;padding:0 10px 0 2px;display:inline-flex;align-items:center}
+.ing-hdr-selladd{box-sizing:border-box;min-height:18px;font-family:var(--FM);font-size:12px;font-weight:600;letter-spacing:0.02em;line-height:1;color:var(--text);opacity:1;white-space:nowrap;flex-shrink:0;padding:0 10px 0 2px;display:inline-flex;align-items:center}
 .ing-row{border:1px solid var(--border);border-radius:5px;background:var(--s2);overflow:hidden}
-.ing-row.open{border-color:var(--accent)}
+.ing-row.open{border-color:var(--border2);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);background:var(--s1)}
 .ing-hdr{--ing-hdr-row-h:18px;display:grid;grid-template-columns:1fr 52px 46px 16px;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;user-select:none}
-.ing-hdr:hover{background:var(--acc-bg)}
+.ing-hdr:hover{background:var(--s3)}
 .ing-nm{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ing-cv{font-family:var(--FM);font-size:11px;color:var(--accent);text-align:right}
 .ing-pv{font-family:var(--FM);font-size:10px;color:var(--muted);text-align:right}
 .ing-chv{font-size:9px;color:var(--muted);text-align:right;transition:transform .2s}
 .ing-hdr .ing-cv,.ing-hdr .ing-pv,.ing-hdr .ing-chv{min-height:18px;display:flex;align-items:center;justify-content:flex-end;line-height:1;margin:0;padding:0}
 .ing-row.open .ing-chv{transform:rotate(180deg)}
-.ing-body{display:none;padding:8px 10px 10px;border-top:1px solid var(--border);background:var(--s1)}
+.ing-body{display:none;padding:8px 10px 10px;border-top:1px solid var(--border);background:var(--s3)}
 .ing-row.open .ing-body{display:block}
 
 /* ingredient field labels */
-.ifl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.ifl{font-size:9px;font-weight:500;color:var(--label);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
 .ing-name-row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
 /* double slider layout */
 .ing-slider-block{margin-bottom:6px}
 .ing-slider-block:last-child{margin-bottom:0}
 .ing-sl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px}
-.ing-sl-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.ing-sl-label{font-size:9px;font-weight:500;color:var(--label);text-transform:uppercase;letter-spacing:.5px}
 .ing-sl-val{font-family:var(--FM);font-size:11px;color:var(--accent)}
 .ing-sl-row{display:flex;align-items:center;gap:6px}
 /* Briosh (isLavash) special: unit price input */
@@ -219,13 +227,13 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .pnl-row:last-child{border-bottom:none}
 .snap-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:11px}
 .sc{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:9px 11px}
-.sc-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.sc-l{font-size:9px;font-weight:500;color:var(--label);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
 .sc-v{font-family:var(--FM);font-size:14px;color:var(--text)}
 
 /* ═══ BARS ═══ */
 .bar-item{margin-bottom:6px}
 .bar-top{display:flex;justify-content:space-between;margin-bottom:2px}
-.bar-nm{font-size:9px;color:var(--label);letter-spacing:1px;text-transform:uppercase}
+.bar-nm{font-size:9px;font-weight:500;color:var(--label);letter-spacing:1px;text-transform:uppercase}
 .bar-pct{font-family:var(--FM);font-size:9px;color:var(--text)}
 .bar-track{height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
 .bar-fill{height:100%;border-radius:2px;transition:width .3s ease}
@@ -234,19 +242,19 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .out-panel{grid-column:3;grid-row:1/3;background:var(--s1);display:flex;flex-direction:column}
 .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-bottom:1px solid var(--border)}
 .kpi{background:var(--s1);padding:13px 15px}
-.kpi-l{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px}
-.kpi-v{font-family:var(--FD);font-size:28px;letter-spacing:1px;line-height:1}
+.kpi-l{font-size:9px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px}
+.kpi-v{font-family:var(--FN);font-size:24px;font-weight:700;letter-spacing:-.04em;line-height:1.12;font-variant-numeric:tabular-nums}
 .kpi-v.pos{color:var(--grn-l)}.kpi-v.neg{color:var(--red-l)}.kpi-v.neu{color:var(--accent)}.kpi-v.mut{color:var(--label)}
-.kpi-s{font-family:var(--FM);font-size:9px;color:var(--muted);margin-top:3px}
+.kpi-s{font-family:var(--FM);font-size:9px;font-weight:500;color:var(--muted);margin-top:3px}
 
 .meter-wrap{background:var(--s2);padding:12px 16px;border-bottom:1px solid var(--border)}
 .meter-hd{display:flex;justify-content:space-between;margin-bottom:5px}
-.meter-txt{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.meter-txt{font-size:9px;font-weight:500;color:var(--label);letter-spacing:1px;text-transform:uppercase}
 .meter-pct{font-family:var(--FM);font-size:12px;color:var(--text)}
 .meter-trk{height:7px;background:var(--s3);border-radius:4px;overflow:hidden}
 .meter-fil{height:100%;border-radius:4px;transition:width .3s,background .3s}
 .meter-sc{display:flex;justify-content:space-between;margin-top:3px}
-.meter-sc span{font-size:9px;color:var(--muted)}
+.meter-sc span{font-size:9px;font-weight:500;color:var(--muted)}
 
 .proj-wrap{padding:12px 16px;border-bottom:1px solid var(--border)}
 .proj-ttl{font-family:var(--FD);font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
@@ -265,9 +273,9 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 
 /* utils */
 .divider{height:1px;background:var(--border);margin:9px 0}
-.sub-lbl{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin:9px 0 6px}
+.sub-lbl{font-size:9px;font-weight:600;color:var(--label);text-transform:uppercase;letter-spacing:1.5px;margin:9px 0 6px}
 .sr{display:flex;justify-content:space-between;align-items:center;padding:3px 0}
-.sr-l{font-size:10px;color:var(--label);text-transform:uppercase;letter-spacing:1px}
+.sr-l{font-size:10px;font-weight:500;color:var(--label);text-transform:uppercase;letter-spacing:1px}
 .sr-v{font-family:var(--FM);font-size:12px;color:var(--text)}
 .sr-v.acc{color:var(--accent)}.sr-v.grn{color:var(--grn-l)}.sr-v.red{color:var(--red-l)}
 .sr-v.pos{color:var(--grn-l)}.sr-v.neg{color:var(--red-l)}.sr-v.neu{color:var(--accent)}
@@ -289,7 +297,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
     </div>
   </div>
   <div class="hdr-right">
-    <span style="font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Currency</span>
+    <span style="font-size:9px;font-weight:500;color:var(--muted);letter-spacing:1px;text-transform:uppercase">Currency</span>
     <button class="cur-btn active" onclick="setCurrency('UAH')">UAH</button>
     <button class="cur-btn" onclick="setCurrency('USD')">USD</button>
   </div>
@@ -417,7 +425,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
   <div class="bot-row">
     <div class="panel">
       <div class="ptitle">👥 Labor</div>
-      <div class="sh"><span class="sl">Monthly Total</span><span class="spct" id="labor-total">₴0</span></div>
+      <div class="sh"><span class="sl">Monthly Total</span><span class="spct spct-total" id="labor-total">₴0</span></div>
       <div id="emp-container"></div>
       <button class="add-btn" onclick="addEmployee()">+ Add Employee</button>
       <div class="divider"></div>
@@ -425,7 +433,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
     </div>
     <div class="panel">
       <div class="ptitle">🏢 Rent</div>
-      <div class="sh"><span class="sl">Monthly Total</span><span class="spct" id="rent-total">₴0</span></div>
+      <div class="sh"><span class="sl">Monthly Total</span><span class="spct spct-total" id="rent-total">₴0</span></div>
       <div id="rent-container"></div>
       <button class="add-btn" onclick="addRentItem()">+ Add Property</button>
       <div class="divider"></div>
@@ -433,7 +441,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
     </div>
     <div class="panel">
       <div class="ptitle">⚡ Operational</div>
-      <div class="sh"><span class="sl">Monthly Total</span><span class="spct" id="ops-total">₴0</span></div>
+      <div class="sh"><span class="sl">Monthly Total</span><span class="spct spct-total" id="ops-total">₴0</span></div>
       <div id="ops-container"></div>
       <button class="add-btn" onclick="addOpsItem()">+ Add Item</button>
       <div class="divider"></div>
@@ -610,14 +618,14 @@ function initChart(){
       labels:['Food','Labor','Rent','Ops','Profit'],
       datasets:[{
         data:[0,0,0,0,0],
-        backgroundColor:['#ef4444','#f5a623','#3b82f6','#a855f7','#22c55e'],
-        borderColor:'#131417',borderWidth:2,hoverOffset:4
+        backgroundColor:['#ef4444','#f5a623','#3b82f6','#a855f7','#16a34a'],
+        borderColor:'#ffffff',borderWidth:2,hoverOffset:4
       }]
     },
     options:{
       cutout:'66%',
       plugins:{
-        legend:{display:true,position:'bottom',labels:{color:'#5a5e70',font:{family:'DM Mono',size:9},boxWidth:9,padding:6}},
+        legend:{display:true,position:'bottom',labels:{color:'#374151',font:{family:'DM Mono',size:9},boxWidth:9,padding:6}},
         tooltip:{callbacks:{label:c=>' '+c.label+': '+c.parsed.toFixed(1)+'%'}}
       },
       animation:{duration:250}
@@ -856,6 +864,8 @@ function renderIngredients(){
   c.innerHTML='';
   ingredients.forEach((ing,idx)=>{
     const inPl=ingIncluded(ing);
+    const costMuted = !inPl ? ' ing-cost-muted' : '';
+    const costInp = !inPl ? ' ing-cost-inp' : '';
     const lineCost=ingCost(ing);
     const pct=totalAct>0 && inPl?lineCost/totalAct*100:0;
     const open=!!ingOpenState[idx];
@@ -887,7 +897,7 @@ function renderIngredients(){
 
     const row=document.createElement('div');
     const gapCls = (sec !== psec && (sec==='fries' || sec==='drinks')) ? ' ing-row--section-gap' : '';
-    row.className='ing-row'+(open?' open':'')+(!inPl?' ing-row--excluded':'')+gapCls;
+    row.className='ing-row'+(open?' open':'')+(!inPl?' ing-row--pnl-off':'')+gapCls;
     row.id='ing-row-'+idx;
 
     // Body content differs: Briosh has unit price input, others have dual sliders
@@ -910,7 +920,7 @@ function renderIngredients(){
         </div>
         <div class="lavash-price">
           <div class="ifl" style="min-width:80px">Price / unit (₴)</div>
-          <input type="number" id="ig-p-${idx}" value="${ing.ppkg}" class="w60" oninput="ingUnitPriceInp(${idx},this.value)">
+            <input type="number" id="ig-p-${idx}" value="${ing.ppkg}" class="w60${costInp}" oninput="ingUnitPriceInp(${idx},this.value)">
           <span style="font-size:10px;color:var(--muted)">per piece</span>
         </div>
       `;
@@ -923,7 +933,7 @@ function renderIngredients(){
           <div class="ing-sl-row" style="justify-content:flex-end">
             <div class="ing-sl-ctl" style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
               <span class="ing-sl-label">Cost per item (₴)</span>
-              <input type="number" id="ig-p-${idx}" class="w60" value="${ing.ppkg}" oninput="ingPpkgInp(${idx},this.value)">
+              <input type="number" id="ig-p-${idx}" class="w60${costInp}" value="${ing.ppkg}" oninput="ingPpkgInp(${idx},this.value)">
             </div>
           </div>
         </div>
@@ -947,12 +957,12 @@ function renderIngredients(){
         <div class="ing-slider-block">
           <div class="ing-sl-header">
             <span class="ing-sl-label">Price per kg (₴)</span>
-            <span class="ing-sl-val" id="ig-plbl-${idx}">₴${ing.ppkg}/kg</span>
+            <span class="ing-sl-val${costMuted}" id="ig-plbl-${idx}">₴${ing.ppkg}/kg</span>
           </div>
           <div class="ing-sl-row">
             <input type="range" id="ig-psl-${idx}" min="0" max="1000" value="${pt}"
               oninput="ingPpkgSl(${idx},this.value)" style="--fill:${pt/10}%">
-            <input type="number" id="ig-p-${idx}" value="${ing.ppkg}" class="w60" oninput="ingPpkgInp(${idx},this.value)">
+            <input type="number" id="ig-p-${idx}" value="${ing.ppkg}" class="w60${costInp}" oninput="ingPpkgInp(${idx},this.value)">
           </div>
         </div>
       `;
@@ -967,8 +977,8 @@ function renderIngredients(){
           </div>
           ${swHtml}
         </div>
-        <span class="ing-cv">₴${lineCost.toFixed(2)}</span>
-        <span class="ing-pv">${inPl?pct.toFixed(0)+'%':'—'}</span>
+        <span class="ing-cv${costMuted}">₴${lineCost.toFixed(2)}</span>
+        <span class="ing-pv${costMuted}">${inPl?pct.toFixed(0)+'%':'—'}</span>
         <span class="ing-chv">▼</span>
       </div>
       <div class="ing-body">

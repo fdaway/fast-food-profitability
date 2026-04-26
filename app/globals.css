@@ -2,29 +2,34 @@
   --font-fd: "Bebas Neue", sans-serif;
   --font-fm: "DM Mono", monospace;
   --font-fb: "DM Sans", sans-serif;
-  --bg: #0c0d0f;
-  --s1: #131417;
-  --s2: #1a1b1f;
-  --s3: #21232a;
-  --border: #2c2e38;
-  --border2: #3a3d4a;
-  --accent: #f5a623;
-  --acc-d: #c8860d;
-  --acc-bg: #1e1608;
+  /* Tabular / UI numbers (monthly totals, etc.); --font-fi from next/font on <html> */
+  --font-fi: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Light theme — crisper type + lines */
+  --bg: #f0f0f2;
+  --s1: #ffffff;
+  --s2: #f8f8f9;
+  --s3: #f0f1f3;
+  --border: #c8ccd4;
+  --border2: #9ca3af;
+  --accent: #c2410c;
+  --acc-d: #9a3412;
+  --acc-bg: #ffedd5;
   --green: #16a34a;
-  --grn-l: #22c55e;
+  --grn-l: #15803d;
   --red: #dc2626;
-  --red-l: #ef4444;
-  --text: #eef0f6;
-  --muted: #5a5e70;
-  --label: #8a8fa5;
-  /* Ingredient include switch — aligned to dark surface + status greens */
-  --ing-sw-off: var(--muted);
-  --ing-sw-on: var(--grn-l);
-  --ing-sw-thumb: var(--text);
+  --red-l: #dc2626;
+  --text: #030712;
+  /* Small UI greys: readable, not as heavy as main text */
+  --muted: #4b5563;
+  --label: #374151;
+  /* Ingredient switch: gray track, green on, light thumb */
+  --ing-sw-off: #d1d5db;
+  --ing-sw-on: #16a34a;
+  --ing-sw-thumb: #ffffff;
   --FD: var(--font-fd);
   --FM: var(--font-fm);
   --FB: var(--font-fb);
+  --FN: var(--font-fi);
 }
 
 * {
@@ -43,6 +48,8 @@ body {
   color: var(--text);
   font-family: var(--FB);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 header {
@@ -55,7 +62,8 @@ header {
   position: sticky;
   top: 0;
   z-index: 200;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border2);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
 .hdr-brand {
@@ -63,7 +71,7 @@ header {
   align-items: center;
   gap: 10px;
   padding-right: 24px;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--border2);
   height: 100%;
 }
 .hdr-titles {
@@ -100,33 +108,39 @@ header {
   gap: 8px;
   margin-left: auto;
   padding-left: 20px;
-  border-left: 1px solid var(--border);
+  border-left: 1px solid var(--border2);
   height: 100%;
 }
 
 .hdr-currency {
   font-size: 9px;
+  font-weight: 500;
   color: var(--muted);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
 
 .cur-btn {
-  background: var(--s3);
+  background: var(--s1);
   border: 1px solid var(--border2);
   color: var(--muted);
   font-family: var(--FM);
   font-size: 11px;
   padding: 5px 11px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s;
 }
 
+.cur-btn:hover {
+  border-color: var(--border2);
+  color: var(--text);
+}
+
 .cur-btn.active {
-  background: var(--accent);
-  color: #000;
-  border-color: var(--accent);
+  background: #111827;
+  color: #fff;
+  border-color: #111827;
   font-weight: 600;
 }
 
@@ -142,6 +156,7 @@ header {
 .panel {
   background: var(--s1);
   padding: 16px 18px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 .ptitle {
@@ -169,16 +184,27 @@ header {
   font-weight: 600;
   letter-spacing: 2.5px;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--label);
 }
 
-.sh .sl { color: #a8aebf; }
+.sh .sl { color: var(--label); }
 
 .spct {
   font-family: var(--FM);
   font-size: 14px;
   font-weight: 500;
   color: var(--text);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Monthly total currency in Labor / Rent / Ops — larger, weightier sans numerals */
+.spct-total {
+  font-family: var(--FN);
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  letter-spacing: -0.02em;
 }
 
 /* Food cost % (ingredients header): green 28%–55%, red outside */
@@ -206,10 +232,10 @@ header {
 
 .pnl-row .ifl {
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.04em;
   margin-bottom: 5px;
 }
 
@@ -322,8 +348,8 @@ input[type="number"]::-webkit-outer-spin-button {
 
 input[type="number"]:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.18);
+  border-color: var(--border2);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05), 0 0 0 1px var(--accent);
 }
 
 input[type="number"].w80 { width: 80px; }
@@ -386,7 +412,7 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--accent);
   cursor: pointer;
   border: 2px solid var(--s1);
-  box-shadow: 0 0 0 1px var(--acc-d);
+  box-shadow: 0 0 0 1px var(--acc-d), 0 1px 2px rgba(0, 0, 0, 0.12);
   transition: transform 0.1s;
 }
 
@@ -430,7 +456,7 @@ input[type="number"].w88 {
 
 .del-btn:hover {
   color: var(--red-l);
-  background: #1a0808;
+  background: rgba(239, 68, 68, 0.08);
 }
 
 .add-btn {
@@ -449,17 +475,27 @@ input[type="number"].w88 {
 }
 
 .add-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--acc-bg);
+  border-color: var(--border2);
+  color: var(--text);
+  background: var(--s3);
 }
 
-.ing-row--excluded {
-  opacity: 0.5;
-}
-.ing-row--excluded .ing-cv,
-.ing-row--excluded .ing-pv {
+/* Fries/drinks toggled off: row stays full strength; only dim food-cost figures */
+.ing-row--pnl-off .ing-cost-muted {
   color: var(--muted);
+  opacity: 0.88;
+}
+.ing-row--pnl-off .ing-body input.ing-cost-inp {
+  color: var(--muted);
+  opacity: 0.92;
+}
+.ing-row--pnl-off .ing-body input.ing-cost-inp:focus {
+  opacity: 1;
+  color: var(--text);
+}
+.ing-row--pnl-off .ing-body .ing-sl-val.ing-cost-muted {
+  color: var(--muted);
+  opacity: 0.88;
 }
 
 /* Compact Material-style switch (fries / drinks in header) */
@@ -497,7 +533,7 @@ input[type="number"].w88 {
   height: 14px;
   border-radius: 50%;
   background: var(--ing-sw-thumb);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.08);
   transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .ing-sw-input:checked + .ing-sw-track {
@@ -551,7 +587,8 @@ input[type="number"].w88 {
 
 .ing-row.open {
   border-color: var(--border2);
-  box-shadow: inset 0 0 0 1px rgba(90, 94, 112, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+  background: var(--s1);
 }
 
 .ing-hdr {
@@ -565,7 +602,7 @@ input[type="number"].w88 {
   user-select: none;
 }
 
-.ing-hdr:hover { background: rgba(255, 255, 255, 0.04); }
+.ing-hdr:hover { background: var(--s3); }
 
 .ing-hdr:focus {
   outline: none;
@@ -599,7 +636,7 @@ input[type="number"].w88 {
   letter-spacing: 0.02em;
   line-height: 1;
   color: var(--text);
-  opacity: 0.88;
+  opacity: 1;
   white-space: nowrap;
   flex-shrink: 0;
   box-sizing: border-box;
@@ -645,8 +682,8 @@ input.ing-nm--hdr {
 
 input.ing-nm--hdr:focus {
   outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.15);
+  border-color: var(--border2);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04), 0 0 0 1px var(--accent);
 }
 
 .ing-cv {
@@ -659,7 +696,7 @@ input.ing-nm--hdr:focus {
 .ing-pv {
   font-family: var(--FM);
   font-size: 10px;
-  color: #b8bdd1;
+  color: var(--muted);
   text-align: right;
   font-weight: 500;
 }
@@ -690,7 +727,7 @@ input.ing-nm--hdr:focus {
   display: none;
   padding: 8px 10px 10px;
   border-top: 1px solid var(--border);
-  background: var(--s1);
+  background: var(--s3);
 }
 
 .ing-row.open .ing-body { display: block; }
@@ -700,13 +737,14 @@ input.ing-nm--hdr:focus {
 .ing-body input[type="text"]:focus-visible,
 .ing-body input[type="number"]:focus,
 .ing-body input[type="number"]:focus-visible {
-  border-color: #4a4e5c;
-  box-shadow: 0 0 0 2px rgba(90, 94, 112, 0.22);
+  border-color: var(--border2);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04);
 }
 
 .ifl {
   font-size: 9px;
-  color: var(--muted);
+  font-weight: 500;
+  color: var(--label);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 3px;
@@ -740,9 +778,10 @@ input.ing-nm--hdr:focus {
 
 .ing-sl-label {
   font-size: 9px;
-  color: var(--muted);
+  font-weight: 500;
+  color: var(--label);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.5px;
   line-height: 1.1;
   white-space: nowrap;
 }
@@ -790,6 +829,7 @@ input.ing-nm--hdr:focus {
 .ci-bg {
   font-family: var(--FM);
   font-size: 9px;
+  font-weight: 500;
   color: var(--muted);
   min-width: 2rem;
   flex-shrink: 0;
@@ -812,7 +852,8 @@ input.ing-nm--hdr:focus {
 
 .sc-l {
   font-size: 9px;
-  color: var(--muted);
+  font-weight: 500;
+  color: var(--label);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: 2px;
@@ -831,6 +872,7 @@ input.ing-nm--hdr:focus {
 
 .bar-nm {
   font-size: 9px;
+  font-weight: 500;
   color: var(--label);
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -878,17 +920,20 @@ input.ing-nm--hdr:focus {
 
 .kpi-l {
   font-size: 9px;
-  color: var(--muted);
+  font-weight: 600;
+  color: var(--label);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin-bottom: 3px;
 }
 
 .kpi-v {
-  font-family: var(--FD);
-  font-size: 28px;
-  letter-spacing: 1px;
-  line-height: 1;
+  font-family: var(--FN);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1.12;
+  font-variant-numeric: tabular-nums;
 }
 
 .kpi-v.pos { color: var(--grn-l); }
@@ -899,6 +944,7 @@ input.ing-nm--hdr:focus {
 .kpi-s {
   font-family: var(--FM);
   font-size: 9px;
+  font-weight: 500;
   color: var(--muted);
   margin-top: 3px;
 }
@@ -913,7 +959,8 @@ input.ing-nm--hdr:focus {
 
 .meter-txt {
   font-size: 9px;
-  color: var(--muted);
+  font-weight: 500;
+  color: var(--label);
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -927,7 +974,7 @@ input.ing-nm--hdr:focus {
 .meter-trk { height: 7px; background: var(--s3); border-radius: 4px; overflow: hidden; }
 .meter-fil { height: 100%; border-radius: 4px; transition: width 0.3s, background 0.3s; }
 .meter-sc { display: flex; justify-content: space-between; margin-top: 3px; }
-.meter-sc span { font-size: 9px; color: var(--muted); }
+.meter-sc span { font-size: 9px; font-weight: 500; color: var(--muted); }
 
 .proj-wrap { padding: 12px 16px; border-bottom: 1px solid var(--border); }
 
@@ -974,7 +1021,7 @@ input.ing-nm--hdr:focus {
 .sub-lbl {
   font-size: 9px;
   font-weight: 600;
-  color: var(--muted);
+  color: var(--label);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   margin: 9px 0 6px;
@@ -989,6 +1036,7 @@ input.ing-nm--hdr:focus {
 
 .sr-l {
   font-size: 10px;
+  font-weight: 500;
   color: var(--label);
   text-transform: uppercase;
   letter-spacing: 1px;

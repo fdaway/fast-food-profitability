@@ -1,4 +1,4 @@
-import { Bebas_Neue, DM_Mono, DM_Sans } from "next/font/google";
+import { Bebas_Neue, DM_Mono, DM_Sans, Inter } from "next/font/google";
 import "./globals.css";
 
 const fontDisplay = Bebas_Neue({
@@ -22,6 +22,13 @@ const fontSans = DM_Sans({
   display: "swap",
 });
 
+const fontInter = Inter({
+  weight: ["500", "600", "700"],
+  subsets: ["latin"],
+  variable: "--font-fi",
+  display: "swap",
+});
+
 export const metadata = {
   title: "Margin / Profit / Food Cost / Upsells / Projections — Calculator",
   description:
@@ -32,7 +39,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${fontDisplay.variable} ${fontMono.variable} ${fontSans.variable}`}
+      className={`${fontDisplay.variable} ${fontMono.variable} ${fontSans.variable} ${fontInter.variable}`}
     >
       <body>{children}</body>
     </html>
