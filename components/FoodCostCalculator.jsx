@@ -40,6 +40,7 @@ const INGREDIENT_SECTION_LABELS = {
   fries: "Fries",
   drinks: "Drinks",
 };
+const MENU_UPSELLS_HEADING = "Menu Upsales";
 
 function getIngredientSection(ing) {
   return ing.section || "burger";
@@ -100,7 +101,7 @@ const DEFAULT_OPS = [
   { id: "cln", name: "Cleaning", monthly: 3000, isBank: false },
   {
     id: "bank",
-    name: "Payment Processing Fee",
+    name: "Payments Fee",
     monthly: 2,
     isBank: true,
     cardPct: 50,
@@ -385,7 +386,10 @@ export default function FoodCostCalculator() {
           <div className="ptitle">🥩 Food cost</div>
           <div className="sh">
             <span className="sl">Ingredients</span>
-            <span className={"spct " + spctClass}>{fp.toFixed(1)}%</span>
+            <div className="fc-pct-group">
+              <span className="fc-pct-lbl">(% of item price)</span>
+              <span className={"spct " + spctClass}>{fp.toFixed(1)}%</span>
+            </div>
           </div>
           <div className="ing-list">
             {ingredients.map((ing, idx) => {
@@ -402,6 +406,10 @@ export default function FoodCostCalculator() {
               const sec = getIngredientSection(ing);
               const prevSec =
                 idx > 0 ? getIngredientSection(ingredients[idx - 1]) : null;
+              /** One heading for fries + drinks; show again only if drinks follow burger without fries */
+              const showMenuUpsalesHead =
+                (sec === "fries" && prevSec !== "fries") ||
+                (sec === "drinks" && prevSec === "burger");
               const showSectionHead = sec !== prevSec && sec === "burger";
               const isFirstFries = sec === "fries" && prevSec !== "fries";
               const isFirstDrinks = sec === "drinks" && prevSec !== "drinks";
@@ -415,12 +423,22 @@ export default function FoodCostCalculator() {
                       {sectionTitle}
                     </div>
                   ) : null}
+                  {showMenuUpsalesHead ? (
+                    <div
+                      className="ing-section-hd ing-section-hd--menu-upsales"
+                      role="presentation"
+                    >
+                      {MENU_UPSELLS_HEADING}
+                    </div>
+                  ) : null}
                 <div
                   className={
                     "ing-row" +
                     (open ? " open" : "") +
                     (inPl ? "" : " ing-row--pnl-off") +
-                    (sec !== prevSec && (sec === "fries" || sec === "drinks")
+                    (!showMenuUpsalesHead &&
+                    sec !== prevSec &&
+                    (sec === "fries" || sec === "drinks")
                       ? " ing-row--section-gap"
                       : "")
                   }
@@ -1010,7 +1028,23 @@ export default function FoodCostCalculator() {
               return (
                 <div className="ci ci-vstack" key={e.id}>
                   <div className="ci-line-3">
-                    <span className="ci-row-nm">{e.name}</span>
+                    <div className="ci-lro-nm-wrap">
+                      <span className="ci-row-nm">{e.name}</span>
+                      <button
+                        type="button"
+                        className="del-btn del-btn--lro"
+                        onClick={() => {
+                          setEmployees((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          );
+                        }}
+                        aria-label={`Remove ${e.name}`}
+                      >
+                        <span className="del-btn-x" aria-hidden="true">
+                          ✕
+                        </span>
+                      </button>
+                    </div>
                     <div className="ci-amt-blk">
                       <span className="ci-cur">₴</span>
                       <input
@@ -1027,19 +1061,6 @@ export default function FoodCostCalculator() {
                         }}
                       />
                     </div>
-                    <button
-                      type="button"
-                      className="del-btn"
-                      onClick={() => {
-                        setEmployees((prev) =>
-                          prev.filter((_, i) => i !== idx)
-                        );
-                      }}
-                    >
-                      <span className="del-btn-x" aria-hidden="true">
-                        ✕
-                      </span>
-                    </button>
                   </div>
                   <div className="ci-slider-full">
                     <div className="ci-sl">
@@ -1088,7 +1109,23 @@ export default function FoodCostCalculator() {
               return (
                 <div className="ci ci-vstack" key={r.id}>
                   <div className="ci-line-3">
-                    <span className="ci-row-nm">{r.name}</span>
+                    <div className="ci-lro-nm-wrap">
+                      <span className="ci-row-nm">{r.name}</span>
+                      <button
+                        type="button"
+                        className="del-btn del-btn--lro"
+                        onClick={() => {
+                          setRentItems((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          );
+                        }}
+                        aria-label={`Remove ${r.name}`}
+                      >
+                        <span className="del-btn-x" aria-hidden="true">
+                          ✕
+                        </span>
+                      </button>
+                    </div>
                     <div className="ci-amt-blk">
                       <span className="ci-cur">₴</span>
                       <input
@@ -1105,19 +1142,6 @@ export default function FoodCostCalculator() {
                         }}
                       />
                     </div>
-                    <button
-                      type="button"
-                      className="del-btn"
-                      onClick={() => {
-                        setRentItems((prev) =>
-                          prev.filter((_, i) => i !== idx)
-                        );
-                      }}
-                    >
-                      <span className="del-btn-x" aria-hidden="true">
-                        ✕
-                      </span>
-                    </button>
                   </div>
                   <div className="ci-slider-full">
                     <div className="ci-sl">
@@ -1163,18 +1187,8 @@ export default function FoodCostCalculator() {
             </div>
             {opsItems.map((op, idx) => {
               const cardPct = op.isBank ? Number(op.cardPct ?? 50) : 0;
-              const bankVal = op.isBank
-                ? Math.round(
-                    monthRev * (Number(op.monthly) / 100) * (cardPct / 100)
-                  )
-                : 0;
-              const cashSharePct = op.isBank
-                ? Math.round((100 - cardPct) * 10) / 10
-                : 0;
-              const cardSharePctR = op.isBank
-                ? Math.round(cardPct * 10) / 10
-                : 0;
-              const displayVal = op.isBank ? bankVal : op.monthly;
+              const cardSharePctInt = op.isBank ? Math.round(cardPct) : 0;
+              const cashSharePctInt = op.isBank ? 100 - cardSharePctInt : 0;
               const t = op.isBank
                 ? bankToSlider(op.monthly)
                 : toSlider("ops", op.monthly);
@@ -1184,35 +1198,45 @@ export default function FoodCostCalculator() {
               return (
                 <div className="ci ci-vstack" key={op.id}>
                   <div className="ci-line-3">
-                    <div className="ci-ops-lbl">
-                      <span className="ci-row-nm">{op.name}</span>
+                    <div className="ci-lro-nm-wrap">
+                      <div className="ci-ops-lbl">
+                        <span className="ci-row-nm">{op.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="del-btn del-btn--lro"
+                        onClick={() => {
+                          setOpsItems((prev) =>
+                            prev.filter((_, i) => i !== idx)
+                          );
+                        }}
+                        aria-label={`Remove ${op.name}`}
+                      >
+                        <span className="del-btn-x" aria-hidden="true">
+                          ✕
+                        </span>
+                      </button>
                     </div>
                     {op.isBank ? (
-                      <div className="ci-bank-amounts">
-                        <div className="ci-amt-blk">
-                          <input
-                            type="number"
-                            min={0}
-                            max={10}
-                            step={0.1}
-                            className="ci-amt"
-                            value={op.monthly}
-                            onChange={(ev) => opsFeePctInp(idx, ev.target.value)}
-                            aria-label="Payment processing fee percent of card sales"
-                          />
-                          <span className="ci-cur">%</span>
-                        </div>
-                        <div className="ci-amt-blk">
-                          <span className="ci-cur">₴</span>
-                          <input
-                            type="number"
-                            readOnly
-                            tabIndex={-1}
-                            className="ci-amt"
-                            value={displayVal}
-                            aria-label="Monthly payment processing cost"
-                          />
-                        </div>
+                      <div className="ci-amt-blk ci-amt-blk--pct-in">
+                        <input
+                          type="number"
+                          min={0}
+                          max={10}
+                          step={0.1}
+                          className="ci-amt ci-amt--pct-in"
+                          value={op.monthly}
+                          onChange={(ev) =>
+                            opsFeePctInp(idx, ev.target.value)
+                          }
+                          aria-label="Payments fee percent of card sales revenue"
+                        />
+                        <span
+                          className="ci-amt-pct-suffix"
+                          aria-hidden="true"
+                        >
+                          %
+                        </span>
                       </div>
                     ) : (
                       <div className="ci-amt-blk">
@@ -1220,7 +1244,7 @@ export default function FoodCostCalculator() {
                         <input
                           type="number"
                           className="ci-amt"
-                          value={displayVal}
+                          value={op.monthly}
                           onChange={(ev) => {
                             const v = +ev.target.value || 0;
                             setOpsItems((p) => {
@@ -1232,19 +1256,6 @@ export default function FoodCostCalculator() {
                         />
                       </div>
                     )}
-                    <button
-                      type="button"
-                      className="del-btn"
-                      onClick={() => {
-                        setOpsItems((prev) =>
-                          prev.filter((_, i) => i !== idx)
-                        );
-                      }}
-                    >
-                      <span className="del-btn-x" aria-hidden="true">
-                        ✕
-                      </span>
-                    </button>
                   </div>
                   <div className="ci-slider-full">
                     <div className="ci-sl">
@@ -1257,7 +1268,7 @@ export default function FoodCostCalculator() {
                         onChange={(ev) => opsSl(idx, ev.target.value)}
                         aria-label={
                           op.isBank
-                            ? "Payment processing fee from 0 to 10 percent of revenue that goes through cards"
+                            ? "Payments fee from 0 to 10 percent of revenue that goes through cards"
                             : "Adjust operational cost with slider"
                         }
                       />
@@ -1269,13 +1280,13 @@ export default function FoodCostCalculator() {
                         <div className="ci-bank-mix-pair">
                           <span className="ci-row-nm">Cash</span>
                           <span className="ci-bank-mix-disp" aria-label="Share of sales paid in cash">
-                            {cashSharePct.toFixed(1)}%
+                            {cashSharePctInt}%
                           </span>
                         </div>
                         <div className="ci-bank-mix-pair ci-bank-mix-pair--end">
                           <span className="ci-row-nm">Card</span>
                           <span className="ci-bank-mix-disp" aria-label="Share of sales paid by card">
-                            {cardSharePctR.toFixed(1)}%
+                            {cardSharePctInt}%
                           </span>
                         </div>
                       </div>

@@ -188,7 +188,26 @@ header {
   color: var(--label);
 }
 
-.sh .sl { color: var(--label); }
+.sh .sl {
+  color: var(--label);
+}
+
+/* Food cost: small caption beside total % (right column) */
+.fc-pct-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.fc-pct-lbl {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--label);
+  line-height: 1.2;
+}
 
 .spct {
   font-family: var(--FM);
@@ -255,15 +274,58 @@ header {
 
 .ci-line-3 {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, max-content) 26px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px 10px;
+  column-gap: 10px;
   margin-bottom: 8px;
+}
+
+.ci-lro-nm-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ci-lro-nm-wrap .ci-ops-lbl {
+  flex: 1;
+  min-width: 0;
+}
+
+.ci-lro-nm-wrap > .ci-row-nm {
+  flex: 1;
+  min-width: 0;
 }
 
 .ci-line-3 .ci-amt-blk,
 .ci-line-3 .ci-amt-txt {
   justify-self: end;
+  max-width: 100%;
+}
+
+.ci-line-3 .ci-amt-blk {
+  justify-content: flex-end;
+}
+
+/* Labor / Rent / Ops: ✕ beside name; hidden until hover or keyboard focus-within */
+.ci-lro-nm-wrap .del-btn.del-btn--lro {
+  opacity: 0;
+  pointer-events: none;
+  flex-shrink: 0;
+  transition: opacity 0.18s ease;
+}
+
+.ci-lro-nm-wrap:hover .del-btn--lro,
+.ci-lro-nm-wrap:focus-within .del-btn--lro {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .ci-lro-nm-wrap .del-btn.del-btn--lro {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .ci-amt-blk {
@@ -282,7 +344,6 @@ header {
   line-height: 1.2;
 }
 
-/* Labor / rent / ops: row label (not an input) */
 .ci-row-nm {
   min-width: 0;
   font-size: 11px;
@@ -301,14 +362,35 @@ header {
   min-width: 0;
 }
 
-.ci-bank-amounts {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+/* Payments fee % — single control; % sits inside bordered field */
+.ci-amt-blk--pct-in {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  background: var(--s3);
   min-width: 0;
-  justify-self: end;
-  padding: 1px 0 0;
+  max-width: 8rem;
+  box-sizing: border-box;
+  padding: 0 6px 0 2px;
+  gap: 0;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ci-amt-blk--pct-in:focus-within {
+  border-color: var(--border2);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05), 0 0 0 1px var(--accent);
+}
+
+.ci-amt-pct-suffix {
+  font-family: var(--FM);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1;
+  flex-shrink: 0;
+  user-select: none;
+  pointer-events: none;
 }
 
 .ci-amt-txt {
@@ -343,7 +425,7 @@ header {
   flex: none;
 }
 
-/* Payment processing: card vs cash — label + % (matches .sl + numeric row styling) */
+/* Payments fee row: card vs cash — label + % (matches .sl + numeric row styling) */
 .ci-bank-mix {
   display: flex;
   align-items: center;
@@ -418,6 +500,35 @@ input[type="number"].ci-amt {
   max-width: 8rem;
   font-size: 13px;
   padding: 4px 5px;
+}
+
+/* Stretch within Labor / Rent / Ops row grid so digits sit on the trailing edge */
+.ci-line-3 .ci-amt-blk input[type="number"].ci-amt {
+  width: min(100%, 8rem);
+}
+
+/* Payments fee % — inner number field is borderless inside .ci-amt-blk--pct-in (placed after globals .ci-amt rules) */
+.ci-amt-blk--pct-in input[type="number"].ci-amt.ci-amt--pct-in {
+  flex: 1 1 auto;
+  width: auto !important;
+  min-width: 0;
+  max-width: none !important;
+  margin: 0;
+  padding: 4px 2px 4px 6px;
+  border: none !important;
+  border-radius: 0;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.ci-amt-blk--pct-in input[type="number"].ci-amt.ci-amt--pct-in:focus {
+  outline: none;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ci-line-3 .ci-amt-blk--pct-in {
+  width: min(100%, 8rem);
 }
 input[type="number"].ci-amt:read-only {
   cursor: default;
@@ -640,11 +751,24 @@ input[type="number"].w88 {
   padding: 4px 2px 6px;
   margin: 0;
 }
+
+.ing-section-hd--menu-upsales {
+  color: var(--text);
+}
+
+/* No top rule/gap-before band like Burger — blends with burger block */
+.ing-list .ing-section-hd.ing-section-hd--menu-upsales:not(:first-child) {
+  margin-top: 10px;
+  padding-top: 4px;
+  border-top: none;
+}
+
 .ing-list .ing-section-hd:not(:first-child) {
   margin-top: 8px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
 }
+
 .ing-row--section-gap {
   margin-top: 10px;
 }
