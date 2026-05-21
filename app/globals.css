@@ -1,9 +1,12 @@
 :root {
-  --font-fd: "Bebas Neue", sans-serif;
-  --font-fm: "DM Mono", monospace;
-  --font-fb: "DM Sans", sans-serif;
-  /* Tabular / UI numbers (monthly totals, etc.); --font-fi from next/font on <html> */
-  --font-fi: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Inter + JetBrains Mono (next/font) — fallbacks for non-Next contexts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "Cascadia Code", monospace;
+  /* Semantic aliases */
+  --FB: var(--font-sans);
+  --FD: var(--font-sans);
+  --FM: var(--font-mono);
+  --FN: var(--font-sans);
   /* Light theme — crisper type + lines */
   --bg: #f0f0f2;
   --s1: #ffffff;
@@ -26,10 +29,6 @@
   --ing-sw-off: #d1d5db;
   --ing-sw-on: #16a34a;
   --ing-sw-thumb: #ffffff;
-  --FD: var(--font-fd);
-  --FM: var(--font-fm);
-  --FB: var(--font-fb);
-  --FN: var(--font-fi);
 }
 
 * {
@@ -82,7 +81,8 @@ header {
 .hdr-name {
   font-family: var(--FD);
   font-size: 15px;
-  letter-spacing: 1.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--text);
   line-height: 1.15;
 }
@@ -94,10 +94,10 @@ header {
 .hdr-name-cal {
   font-family: var(--FD);
   font-size: 15px;
-  letter-spacing: 1.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   color: var(--accent);
   font-style: normal;
-  font-weight: 400;
   margin-left: 0.35em;
   white-space: nowrap;
 }
@@ -162,7 +162,8 @@ header {
 .ptitle {
   font-family: var(--FD);
   font-size: 15px;
-  letter-spacing: 3px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   color: var(--accent);
   margin-bottom: 12px;
   display: flex;
@@ -222,7 +223,10 @@ header {
   border-bottom: 1px solid var(--border);
 }
 
-.pnl-row:last-of-type { border-bottom: none; }
+/* Second sales row: no line under Items/day — avoids double rule with Daily Snapshot */
+.pnl-row + .pnl-row {
+  border-bottom: none;
+}
 
 .pnl-row .ci-sl { min-width: 0; width: 100%; }
 
@@ -278,21 +282,33 @@ header {
   line-height: 1.2;
 }
 
-.ci-inp-name {
+/* Labor / rent / ops: row label (not an input) */
+.ci-row-nm {
   min-width: 0;
-  width: 100%;
   font-size: 11px;
-  padding: 4px 6px;
-  background: var(--s3);
-  border: 1px solid var(--border);
-  border-radius: 4px;
+  font-weight: 500;
   color: var(--text);
   font-family: var(--FB);
+  line-height: 1.35;
+  word-break: break-word;
 }
 
-.ci-inp-name:focus {
-  outline: none;
-  border-color: var(--accent);
+.ci-ops-lbl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.ci-bank-amounts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: 0;
+  justify-self: end;
+  padding: 1px 0 0;
 }
 
 .ci-amt-txt {
@@ -325,6 +341,45 @@ header {
   width: 100%;
   min-width: 0;
   flex: none;
+}
+
+/* Payment processing: card vs cash — label + % (matches .sl + numeric row styling) */
+.ci-bank-mix {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 6px 0 4px;
+  width: 100%;
+  min-width: 0;
+}
+.ci-bank-mix-pair {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.ci-bank-mix-pair--end {
+  justify-content: flex-end;
+  text-align: right;
+  margin-left: auto;
+}
+.ci-bank-mix .ci-row-nm {
+  flex-shrink: 0;
+}
+.ci-bank-mix-disp {
+  font-family: var(--FM);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  font-feature-settings: "tnum" 1;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+.ci-bank-mix-pair--end .ci-bank-mix-disp {
+  text-align: right;
 }
 
 input[type="number"] {
@@ -363,6 +418,15 @@ input[type="number"].ci-amt {
   max-width: 8rem;
   font-size: 13px;
   padding: 4px 5px;
+}
+input[type="number"].ci-amt:read-only {
+  cursor: default;
+  color: var(--text);
+}
+input[type="number"].ci-amt:read-only:focus {
+  box-shadow: none;
+  border-color: var(--border2);
+  outline: none;
 }
 
 input[type="text"] {
@@ -457,6 +521,13 @@ input[type="number"].w88 {
 .del-btn:hover {
   color: var(--red-l);
   background: rgba(239, 68, 68, 0.08);
+}
+
+.del-btn-x {
+  font-size: 0.78em;
+  display: inline-block;
+  line-height: 1;
+  vertical-align: -0.06em;
 }
 
 .add-btn {
@@ -976,29 +1047,62 @@ input.ing-nm--hdr:focus {
 .meter-sc { display: flex; justify-content: space-between; margin-top: 3px; }
 .meter-sc span { font-size: 9px; font-weight: 500; color: var(--muted); }
 
-.proj-wrap { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.proj-wrap {
+  padding: 12px 16px 14px;
+  border-bottom: 1px solid var(--border);
+}
 
 .proj-ttl {
   font-family: var(--FD);
   font-size: 11px;
-  letter-spacing: 3px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 8px;
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .proj-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  gap: 12px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border);
 }
 
 .proj-row:last-child { border-bottom: none; }
-.proj-rl { font-size: 10px; color: var(--muted); }
-.proj-rv { display: flex; gap: 10px; }
-.proj-v { font-family: var(--FM); font-size: 11px; text-align: right; }
-.proj-v small { display: block; font-size: 9px; color: var(--muted); }
+
+.proj-rl {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.2;
+  flex-shrink: 0;
+}
+
+.proj-rv {
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+  gap: 10px 14px;
+  min-width: 0;
+  align-items: center;
+}
+
+/* Amounts: ₴ / $ already in string; no duplicate code labels */
+.proj-v {
+  font-family: var(--FM);
+  font-size: 11px;
+  text-align: right;
+  color: var(--text);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  min-width: 0;
+}
 
 .chart-wrap { padding: 12px 16px; flex: 1; }
 .chart-wrap-skeleton { min-height: 155px; }

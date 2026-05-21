@@ -1,32 +1,18 @@
-import { Bebas_Neue, DM_Mono, DM_Sans, Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const fontDisplay = Bebas_Neue({
-  weight: "400",
+const fontSans = Inter({
   subsets: ["latin"],
-  variable: "--font-fd",
+  variable: "--font-sans",
   display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
-const fontMono = DM_Mono({
-  weight: ["400", "500"],
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-fm",
+  variable: "--font-mono",
   display: "swap",
-});
-
-const fontSans = DM_Sans({
   weight: ["400", "500", "600"],
-  subsets: ["latin"],
-  variable: "--font-fb",
-  display: "swap",
-});
-
-const fontInter = Inter({
-  weight: ["500", "600", "700"],
-  subsets: ["latin"],
-  variable: "--font-fi",
-  display: "swap",
 });
 
 export const metadata = {
@@ -37,10 +23,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`${fontDisplay.variable} ${fontMono.variable} ${fontSans.variable} ${fontInter.variable}`}
-    >
+    <html lang="en" className={`${fontSans.variable} ${fontMono.variable}`}>
       <body>{children}</body>
     </html>
   );

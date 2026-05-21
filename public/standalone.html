@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Margin / Profit / Food Cost / Upsells / Projections — Calculator</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&family=Inter:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
@@ -29,11 +29,12 @@
   --ing-sw-off:#d1d5db;
   --ing-sw-on:#16a34a;
   --ing-sw-thumb:#ffffff;
-  --FD:'Bebas Neue',sans-serif;
-  --FM:'DM Mono',monospace;
-  --FB:'DM Sans',sans-serif;
-  --font-fi:'Inter',ui-sans-serif,system-ui,sans-serif;
-  --FN:var(--font-fi);
+  --font-sans:'Inter',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --FD:var(--font-sans);
+  --FB:var(--font-sans);
+  --FM:var(--font-mono);
+  --FN:var(--font-sans);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
@@ -59,12 +60,13 @@ header{
 .hdr-name{
   font-family:var(--FD);
   font-size:15px;
-  letter-spacing:1.5px;
+  font-weight:600;
+  letter-spacing:0.04em;
   color:var(--text);
   line-height:1.15;
 }
 .hdr-name em{color:var(--accent);font-style:normal}
-.hdr-name-cal{font-family:var(--FD);font-size:15px;letter-spacing:1.5px;color:var(--accent);font-style:normal;font-weight:400;margin-left:0.35em;white-space:nowrap}
+.hdr-name-cal{font-family:var(--FD);font-size:15px;font-weight:600;letter-spacing:0.04em;color:var(--accent);font-style:normal;margin-left:0.35em;white-space:nowrap}
 .hdr-right{
   display:flex;align-items:center;gap:8px;
   margin-left:auto;
@@ -90,7 +92,7 @@ header{
 }
 .panel{background:var(--s1);padding:16px 18px;box-shadow:0 1px 0 rgba(0,0,0,.08)}
 .ptitle{
-  font-family:var(--FD);font-size:15px;letter-spacing:3px;
+  font-family:var(--FD);font-size:15px;font-weight:600;letter-spacing:0.1em;
   color:var(--accent);margin-bottom:12px;
   display:flex;align-items:center;gap:7px
 }
@@ -158,6 +160,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
   transition:color .15s,background .15s
 }
 .del-btn:hover{color:var(--red-l);background:rgba(239,68,68,.08)}
+.del-btn-x{font-size:.78em;display:inline-block;line-height:1;vertical-align:-.06em}
 .add-btn{
   background:none;border:1px dashed var(--border2);color:var(--muted);
   width:100%;padding:6px;border-radius:4px;cursor:pointer;
@@ -218,13 +221,27 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .ci{display:grid;grid-template-columns:1fr 80px 22px;gap:6px;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)}
 .ci:last-child{border-bottom:none}
 .ci-top{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.ci-row-nm{min-width:0;font-size:11px;font-weight:500;color:var(--text);font-family:var(--FB);line-height:1.35;word-break:break-word}
+.ci-ops-lbl{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.ci-bank-inpwrap{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:0;padding:1px 0 0}
+.ci-amt-blk{display:flex;align-items:center;justify-content:flex-end;gap:3px;min-width:0}
+.ci-cur{font-family:var(--FM);font-size:12px;color:var(--muted);flex-shrink:0;line-height:1.2}
+input[type=number].ci-amt{width:5.5rem;min-width:0;max-width:8rem;font-size:13px;padding:4px 5px;border-radius:4px}
+input[type=number].ci-amt:read-only{cursor:default}
+input[type=number].ci-amt:read-only:focus{box-shadow:none;border-color:var(--border2);outline:none}
 .ci-l{font-size:11px;color:var(--label)}
 .ci-sl{display:flex;align-items:center;gap:5px}
+.ci-bank-mix{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0 5px;padding:0;width:100%;min-width:0}
+.ci-bank-mix-pair{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto}
+.ci-bank-mix-pair--end{justify-content:flex-end;text-align:right;margin-left:auto}
+.ci-bank-mix .ci-row-nm{flex-shrink:0}
+.ci-bank-mix-disp{font-family:var(--FM);font-size:11px;font-weight:500;color:var(--text);font-feature-settings:"tnum" 1;font-variant-numeric:tabular-nums;line-height:1.35;white-space:nowrap}
+.ci-bank-mix-pair--end .ci-bank-mix-disp{text-align:right}
 .ci-bg{font-family:var(--FM);font-size:9px;color:var(--muted);min-width:26px;text-align:right}
 
 /* ═══ PNL ═══ */
 .pnl-row{display:grid;grid-template-columns:1fr 88px;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)}
-.pnl-row:last-child{border-bottom:none}
+.pnl-row+.pnl-row{border-bottom:none}
 .snap-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:11px}
 .sc{background:var(--s2);border:1px solid var(--border);border-radius:5px;padding:9px 11px}
 .sc-l{font-size:9px;font-weight:500;color:var(--label);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
@@ -256,14 +273,13 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
 .meter-sc{display:flex;justify-content:space-between;margin-top:3px}
 .meter-sc span{font-size:9px;font-weight:500;color:var(--muted)}
 
-.proj-wrap{padding:12px 16px;border-bottom:1px solid var(--border)}
-.proj-ttl{font-family:var(--FD);font-size:11px;letter-spacing:3px;color:var(--muted);margin-bottom:8px}
-.proj-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)}
+.proj-wrap{padding:12px 16px 14px;border-bottom:1px solid var(--border)}
+.proj-ttl{font-family:var(--FD);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:0;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.proj-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
 .proj-row:last-child{border-bottom:none}
-.proj-rl{font-size:10px;color:var(--muted)}
-.proj-rv{display:flex;gap:10px}
-.proj-v{font-family:var(--FM);font-size:11px;text-align:right}
-.proj-v small{display:block;font-size:9px;color:var(--muted)}
+.proj-rl{font-size:10px;font-weight:500;color:var(--muted);line-height:1.2;flex-shrink:0}
+.proj-rv{display:flex;flex:1;justify-content:flex-end;gap:10px 14px;min-width:0;align-items:center}
+.proj-v{font-family:var(--FM);font-size:11px;text-align:right;color:var(--text);white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.2;min-width:0}
 
 .chart-wrap{padding:12px 16px;flex:1}
 .chart-wrap canvas{max-height:155px}
@@ -350,7 +366,6 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
         oninput="mainInpTyped('items',+this.value)">
     </div>
 
-    <div class="divider"></div>
     <div class="sub-lbl">Daily Snapshot</div>
     <div class="snap-grid">
       <div class="sc"><div class="sc-l">Revenue</div><div class="sc-v" id="daily-revenue">₴0</div></div>
@@ -387,7 +402,7 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
   <div class="out-panel">
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-l">Profit Margin</div><div class="kpi-v neu" id="kpi-margin">0%</div><div class="kpi-s" id="kpi-margin-s">—</div></div>
-      <div class="kpi"><div class="kpi-l">Daily Profit</div><div class="kpi-v neu" id="kpi-day">₴0</div><div class="kpi-s" id="kpi-day-s">—</div></div>
+      <div class="kpi"><div class="kpi-l">Monthly Revenue</div><div class="kpi-v mut" id="kpi-mrev">₴0</div><div class="kpi-s">Gross · 30 days</div></div>
       <div class="kpi"><div class="kpi-l">Monthly Profit</div><div class="kpi-v neu" id="kpi-month">₴0</div><div class="kpi-s">30 days</div></div>
       <div class="kpi"><div class="kpi-l">Food Cost %</div><div class="kpi-v neu" id="kpi-food-pct">0%</div><div class="kpi-s">of revenue</div></div>
     </div>
@@ -399,24 +414,24 @@ input[type="range"]:disabled{opacity:.3;cursor:default;background:linear-gradien
     <div class="proj-wrap">
       <div class="proj-ttl">PROJECTIONS</div>
       <div class="proj-row"><span class="proj-rl">Daily</span><div class="proj-rv">
-        <div class="proj-v"><span id="p-d-uah">₴0</span><small>UAH</small></div>
-        <div class="proj-v"><span id="p-d-usd">$0</span><small>USD</small></div>
+        <div class="proj-v"><span id="p-d-uah">₴0</span></div>
+        <div class="proj-v"><span id="p-d-usd">$0</span></div>
       </div></div>
       <div class="proj-row"><span class="proj-rl">Monthly</span><div class="proj-rv">
-        <div class="proj-v"><span id="p-m-uah">₴0</span><small>UAH</small></div>
-        <div class="proj-v"><span id="p-m-usd">$0</span><small>USD</small></div>
+        <div class="proj-v"><span id="p-m-uah">₴0</span></div>
+        <div class="proj-v"><span id="p-m-usd">$0</span></div>
       </div></div>
       <div class="proj-row"><span class="proj-rl">Annual</span><div class="proj-rv">
-        <div class="proj-v"><span id="p-y-uah">₴0</span><small>UAH</small></div>
-        <div class="proj-v"><span id="p-y-usd">$0</span><small>USD</small></div>
+        <div class="proj-v"><span id="p-y-uah">₴0</span></div>
+        <div class="proj-v"><span id="p-y-usd">$0</span></div>
       </div></div>
       <div class="proj-row"><span class="proj-rl">5 Years</span><div class="proj-rv">
-        <div class="proj-v"><span id="p-5y-uah">₴0</span><small>UAH</small></div>
-        <div class="proj-v"><span id="p-5y-usd">$0</span><small>USD</small></div>
+        <div class="proj-v"><span id="p-5y-uah">₴0</span></div>
+        <div class="proj-v"><span id="p-5y-usd">$0</span></div>
       </div></div>
     </div>
     <div class="chart-wrap">
-      <div class="proj-ttl" style="margin-bottom:7px">COST STRUCTURE</div>
+      <div class="proj-ttl">COST STRUCTURE</div>
       <canvas id="donut"></canvas>
     </div>
   </div>
@@ -495,7 +510,11 @@ function fromSlider(scale, t) {
   t = Math.max(0, Math.min(1000, t));
   if (t === 0) return mn;
   if (t === 1000) return mx;
-  return Math.round(mn * Math.pow(mx / mn, t / 1000));
+  const raw = mn * Math.pow(mx / mn, t / 1000);
+  if (scale === 'price') {
+    return Math.round(raw * 100) / 100;
+  }
+  return Math.round(raw);
 }
 
 function toSliderRange(val, range){
@@ -516,7 +535,7 @@ function ingGramsRange(ing){
   return ing.gramsRange || LOG_SCALES.grams;
 }
 
-// Banking fee: linear 0%–10% of monthly revenue; slider 0–1000
+// Payment processing fee: linear 0%–10% of monthly revenue; slider 0–1000
 const BANK_PCT = [0, 10];
 function bankToSlider(pct) {
   const [mn, mx] = BANK_PCT;
@@ -527,6 +546,21 @@ function bankFromSlider(t) {
   const [mn, mx] = BANK_PCT;
   t = Math.max(0, Math.min(1000, +t));
   return Math.round((mn + (t / 1000) * (mx - mn)) * 10) / 10;
+}
+
+const CARD_SHARE = [0, 100];
+function cardShareToSlider(pct) {
+  const [mn, mx] = CARD_SHARE;
+  const p = Math.max(mn, Math.min(mx, +pct || 0));
+  return Math.round(((p - mn) / (mx - mn)) * 1000);
+}
+function cardShareFromSlider(t) {
+  const [mn, mx] = CARD_SHARE;
+  t = Math.max(0, Math.min(1000, +t));
+  return Math.round((mn + (t / 1000) * (mx - mn)) * 10) / 10;
+}
+function bankFeeOnRev(op) {
+  return (Number(op.monthly) / 100) * (Number(op.cardPct != null ? op.cardPct : 50) / 100);
 }
 
 // Update CSS fill percentage on slider
@@ -550,7 +584,7 @@ const COMBO_DRINK_ADD_UAH = 35;
 const PNL_PRICE_MIN_UAH = 120;
 const PNL_PRICE_MAX_UAH = 620;
 function clampPnlSell(n){
-  const v=Math.round(Number(n)||0);
+  const v=Math.round((Number(n)||0)*100)/100;
   return Math.max(PNL_PRICE_MIN_UAH,Math.min(PNL_PRICE_MAX_UAH,v));
 }
 let includeFries = DEFAULT_INCLUDE_FRIES;
@@ -581,8 +615,7 @@ let ingredients = [
   {id:'meat',      name:'Meat',       grams:190, ppkg:420,  isLavash:false, isPackaging:false,  section:'burger'},
   {id:'lavash',    name:'Briosh',     grams:75,  ppkg:20,   isLavash:true,  isPackaging:false,  section:'burger'},
   {id:'cheese',    name:'American cheese',     grams:40,  ppkg:580,  isLavash:false, isPackaging:false,  section:'burger'},
-  {id:'onion',     name:'Onions',     grams:20,  ppkg:80,   isLavash:false, isPackaging:false, gramsRange:[1,100],  section:'burger'},
-  {id:'greens',    name:'Iceberg Lettuce', grams:35,  ppkg:200,  isLavash:false, isPackaging:false,  section:'burger'},
+  {id:'pickles',  name:'Pickles',    grams:20,  ppkg:80,   isLavash:false, isPackaging:false, gramsRange:[1,100],  section:'burger'},
   {id:'sauce',     name:'Sauce',      grams:40,  ppkg:247,  isLavash:false, isPackaging:false,  section:'burger'},
   {id:'packaging', name:'Packaging',  grams:0,   ppkg:3,    isLavash:false, isPackaging:true,  section:'burger'},
   {id:'potato',    name:'Potatoes',   grams:140, ppkg:200,  isLavash:false, isPackaging:false,  section:'fries'},
@@ -602,7 +635,7 @@ let opsItems = [
   {id:'elec', name:'Electricity', monthly:17000, isBank:false},
   {id:'mkt',  name:'Marketing',   monthly:3000,  isBank:false},
   {id:'cln',  name:'Cleaning',    monthly:3000,  isBank:false},
-  {id:'bank', name:'Banking',  monthly:2,  isBank:true },
+  {id:'bank', name:'Payment Processing Fee',  monthly:2,  isBank:true, cardPct:50 },
   {id:'car',  name:'Car / Gas',   monthly:4900,  isBank:false},
   {id:'unex', name:'Unexpected',  monthly:12000, isBank:false},
 ];
@@ -625,7 +658,7 @@ function initChart(){
     options:{
       cutout:'66%',
       plugins:{
-        legend:{display:true,position:'bottom',labels:{color:'#374151',font:{family:'DM Mono',size:9},boxWidth:9,padding:6}},
+        legend:{display:true,position:'bottom',labels:{color:'#374151',font:{family:'JetBrains Mono',size:9},boxWidth:9,padding:6}},
         tooltip:{callbacks:{label:c=>' '+c.label+': '+c.parsed.toFixed(1)+'%'}}
       },
       animation:{duration:250}
@@ -645,7 +678,6 @@ const fmt  = v => currency==='USD' ? '$'+(v*UAH_USD).toFixed(0) : '₴'+Math.rou
 const fUAH = v => '₴'+Math.round(v).toLocaleString();
 const fUSD = v => '$'+(v*UAH_USD).toFixed(0);
 const fUSD2= v => '$'+(v*UAH_USD).toFixed(2);
-const fmtK = v => v>=1000?(v/1000).toFixed(v>=10000?0:1)+'k':String(Math.round(v));
 // Profit / item: &lt;20 var(--red-l), 20–30 var(--accent), ≥30 var(--grn-l) (match lib/profitItemColor.js)
 function getProfitPerItemTextColor(ua){
   if(ua==null||isNaN(+ua)) return 'var(--muted)';
@@ -788,7 +820,6 @@ function empSl(idx, t){
   employees[idx].salary = v;
   updateSliderFill(document.getElementById('e-sl-'+idx), +t);
   const inp=document.getElementById('e-inp-'+idx); if(inp) inp.value=v;
-  const bg =document.getElementById('e-bg-'+idx);  if(bg)  bg.textContent=fmtK(v);
   calculate();
 }
 function empInp(idx, val){
@@ -796,7 +827,6 @@ function empInp(idx, val){
   const t=toSlider('salary',v);
   const sl=document.getElementById('e-sl-'+idx);
   if(sl){ sl.value=t; updateSliderFill(sl,t); }
-  const bg=document.getElementById('e-bg-'+idx); if(bg) bg.textContent=fmtK(v);
   calculate();
 }
 
@@ -808,7 +838,6 @@ function rentSl(idx, t){
   rentItems[idx].monthly=v;
   updateSliderFill(document.getElementById('r-sl-'+idx),+t);
   const inp=document.getElementById('r-inp-'+idx); if(inp) inp.value=v;
-  const bg =document.getElementById('r-bg-'+idx);  if(bg)  bg.textContent=fmtK(v);
   calculate();
 }
 function rentInp(idx,val){
@@ -816,18 +845,31 @@ function rentInp(idx,val){
   const t=toSlider('rent',v);
   const sl=document.getElementById('r-sl-'+idx);
   if(sl){ sl.value=t; updateSliderFill(sl,t); }
-  const bg=document.getElementById('r-bg-'+idx); if(bg) bg.textContent=fmtK(v);
   calculate();
 }
 
 // ════════════════════════════════════════════════════
 //  OPS SLIDERS — no re-render (except banking patch)
 // ════════════════════════════════════════════════════
+function bankCardSl(idx, t){
+  if(!opsItems[idx]||!opsItems[idx].isBank) return;
+  const p=cardShareFromSlider(+t);
+  opsItems[idx].cardPct=p;
+  const sl=document.getElementById('o-card-sl-'+idx);
+  if(sl) updateSliderFill(sl,+t);
+  const cashP=document.getElementById('o-cash-pct-'+idx);
+  const cardP=document.getElementById('o-card-pct-'+idx);
+  if(cashP) cashP.textContent=(Math.round((100-p)*10)/10).toFixed(1)+'%';
+  if(cardP) cardP.textContent=(Math.round(p*10)/10).toFixed(1)+'%';
+  calculate();
+}
 function opsSl(idx, t){
   if(opsItems[idx].isBank){
     opsItems[idx].monthly=bankFromSlider(+t);
     const sl=document.getElementById('o-sl-'+idx);
     if(sl) updateSliderFill(sl,+t);
+    const inp=document.getElementById('o-inp-'+idx);
+    if(inp) inp.value=opsItems[idx].monthly;
     calculate();
     return;
   }
@@ -835,7 +877,6 @@ function opsSl(idx, t){
   opsItems[idx].monthly=v;
   updateSliderFill(document.getElementById('o-sl-'+idx),+t);
   const inp=document.getElementById('o-inp-'+idx); if(inp) inp.value=v;
-  const bg =document.getElementById('o-bg-'+idx);  if(bg)  bg.textContent=fmtK(v);
   calculate();
 }
 function opsInp(idx,val){
@@ -844,7 +885,15 @@ function opsInp(idx,val){
   const t=toSlider('ops',v);
   const sl=document.getElementById('o-sl-'+idx);
   if(sl){ sl.value=t; updateSliderFill(sl,t); }
-  const bg=document.getElementById('o-bg-'+idx); if(bg) bg.textContent=fmtK(v);
+  calculate();
+}
+function opsFeeInp(idx,val){
+  if(!opsItems[idx]||!opsItems[idx].isBank) return;
+  const v=Math.min(10,Math.max(0,+val||0));
+  opsItems[idx].monthly=v;
+  const t=bankToSlider(v);
+  const sl=document.getElementById('o-sl-'+idx);
+  if(sl){ sl.value=t; updateSliderFill(sl,t); }
   calculate();
 }
 
@@ -984,7 +1033,7 @@ function renderIngredients(){
       <div class="ing-body">
         ${bodyContent}
         <div style="display:flex;justify-content:flex-end;margin-top:6px">
-          <button class="del-btn" onclick="removeIngredient(${idx})">✕ Remove</button>
+          <button class="del-btn" onclick="removeIngredient(${idx})"><span class="del-btn-x" aria-hidden="true">✕</span> Remove</button>
         </div>
       </div>`;
     c.appendChild(row);
@@ -1017,15 +1066,14 @@ function renderEmployees(){
     div.className='ci';
     div.innerHTML=`
       <div>
-        <div class="ci-top"><input type="text" value="${e.name}" style="width:110px;font-size:11px" oninput="employees[${idx}].name=this.value"></div>
+        <div class="ci-top"><span class="ci-row-nm">${e.name}</span></div>
         <div class="ci-sl">
           <input type="range" id="e-sl-${idx}" min="0" max="1000" value="${t}"
             oninput="empSl(${idx},this.value)" style="--fill:${t/10}%">
-          <span class="ci-bg" id="e-bg-${idx}">${fmtK(e.salary)}</span>
         </div>
       </div>
       <input type="number" id="e-inp-${idx}" value="${e.salary}" class="w80" oninput="empInp(${idx},this.value)">
-      <button class="del-btn" onclick="removeEmployee(${idx})">✕</button>`;
+      <button class="del-btn" onclick="removeEmployee(${idx})"><span class="del-btn-x" aria-hidden="true">✕</span></button>`;
     c.appendChild(div);
   });
 }
@@ -1041,15 +1089,14 @@ function renderRent(){
     div.className='ci';
     div.innerHTML=`
       <div>
-        <div class="ci-top"><input type="text" value="${r.name}" style="width:110px;font-size:11px" oninput="rentItems[${idx}].name=this.value"></div>
+        <div class="ci-top"><span class="ci-row-nm">${r.name}</span></div>
         <div class="ci-sl">
           <input type="range" id="r-sl-${idx}" min="0" max="1000" value="${t}"
             oninput="rentSl(${idx},this.value)" style="--fill:${t/10}%">
-          <span class="ci-bg" id="r-bg-${idx}">${fmtK(r.monthly)}</span>
         </div>
       </div>
       <input type="number" id="r-inp-${idx}" value="${r.monthly}" class="w80" oninput="rentInp(${idx},this.value)">
-      <button class="del-btn" onclick="removeRent(${idx})">✕</button>`;
+      <button class="del-btn" onclick="removeRent(${idx})"><span class="del-btn-x" aria-hidden="true">✕</span></button>`;
     c.appendChild(div);
   });
 }
@@ -1062,40 +1109,68 @@ function renderOps(monthRev){
     // patch banking only (₴/mo updates when volume/revenue changes)
     opsItems.forEach((op,idx)=>{
       if(op.isBank){
-        const bankVal=Math.round(monthRev*Number(op.monthly)/100);
-        const inp=document.getElementById('o-inp-'+idx);
-        const bg =document.getElementById('o-bg-'+idx);
-        const pc=document.getElementById('o-pct-'+idx);
-        if(inp) inp.value=bankVal;
-        if(bg)  bg.textContent=fmtK(bankVal);
-        if(pc)  pc.textContent=Number(op.monthly).toFixed(1)+'%';
+        const bankVal=Math.round(monthRev*bankFeeOnRev(op));
+        const ua=document.getElementById('o-bank-ua-'+idx);
+        const p=op.cardPct!=null?op.cardPct:50;
+        const cashP=document.getElementById('o-cash-pct-'+idx);
+        const cardP=document.getElementById('o-card-pct-'+idx);
+        if(ua) ua.value=bankVal;
+        if(cashP) cashP.textContent=(Math.round((100-p)*10)/10).toFixed(1)+'%';
+        if(cardP) cardP.textContent=(Math.round(p*10)/10).toFixed(1)+'%';
       }
     });
     return;
   }
   c.innerHTML='';
   opsItems.forEach((op,idx)=>{
-    const bankVal=op.isBank?Math.round(monthRev*Number(op.monthly)/100):0;
+    const bankVal=op.isBank?Math.round(monthRev*bankFeeOnRev(op)):0;
     const dv=op.isBank?bankVal:op.monthly;
     const t=op.isBank?bankToSlider(op.monthly):toSlider('ops',op.monthly);
+    const cp=op.isBank?(op.cardPct!=null?op.cardPct:50):0;
+    const ct=op.isBank?cardShareToSlider(cp):0;
+    const rightCol=op.isBank
+      ?`<div class="ci-bank-inpwrap">
+          <div class="ci-amt-blk">
+            <input type="number" id="o-inp-${idx}" class="ci-amt" value="${op.monthly}" min="0" max="10" step="0.1" oninput="opsFeeInp(${idx},this.value)">
+            <span class="ci-cur">%</span>
+          </div>
+          <div class="ci-amt-blk">
+            <span class="ci-cur">₴</span>
+            <input type="number" id="o-bank-ua-${idx}" class="ci-amt" value="${bankVal}" readonly tabindex="-1" aria-label="Monthly payment processing cost in UAH">
+          </div>
+        </div>`
+      :`<input type="number" id="o-inp-${idx}" value="${dv}" class="w80" oninput="opsInp(${idx},this.value)">`;
     const div=document.createElement('div');
     div.className='ci';
     div.innerHTML=`
       <div>
-        <div class="ci-top" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <input type="text" value="${op.name}" style="width:100px;font-size:11px" oninput="opsItems[${idx}].name=this.value">
-          ${op.isBank?`<span id="o-pct-${idx}" style="font-size:11px;color:var(--muted)">${Number(op.monthly).toFixed(1)}%</span>`:''}
+        <div class="ci-top ci-ops-lbl">
+          <span class="ci-row-nm">${op.name}</span>
         </div>
         <div class="ci-sl">
           <input type="range" id="o-sl-${idx}" min="0" max="1000" value="${t}"
             oninput="opsSl(${idx},this.value)"
             style="--fill:${t/10}%">
-          <span class="ci-bg" id="o-bg-${idx}">${fmtK(dv)}</span>
         </div>
+        ${op.isBank?`
+        <div class="ci-bank-mix">
+          <div class="ci-bank-mix-pair">
+            <span class="ci-row-nm">Cash</span>
+            <span class="ci-bank-mix-disp" id="o-cash-pct-${idx}">${(Math.round((100-cp)*10)/10).toFixed(1)}%</span>
+          </div>
+          <div class="ci-bank-mix-pair ci-bank-mix-pair--end">
+            <span class="ci-row-nm">Card</span>
+            <span class="ci-bank-mix-disp" id="o-card-pct-${idx}">${(Math.round(cp*10)/10).toFixed(1)}%</span>
+          </div>
+        </div>
+        <div class="ci-sl">
+          <input type="range" id="o-card-sl-${idx}" min="0" max="1000" value="${ct}"
+            oninput="bankCardSl(${idx},this.value)" style="--fill:${ct/10}%">
+        </div>
+        ` : ''}
       </div>
-      <input type="number" id="o-inp-${idx}" value="${dv}" class="w80"
-        ${op.isBank?'disabled style="opacity:.4"':''} oninput="opsInp(${idx},this.value)">
-      <button class="del-btn" onclick="removeOps(${idx})">✕</button>`;
+      ${rightCol}
+      <button class="del-btn" onclick="removeOps(${idx})"><span class="del-btn-x" aria-hidden="true">✕</span></button>`;
     c.appendChild(div);
   });
   c._rendered=true;
@@ -1156,7 +1231,7 @@ function calculate(){
   const monthRent  = rentItems.reduce((s,r)=>s+r.monthly,0);
   const dailyRent  = monthRent/DAYS;
 
-  const monthOps   = opsItems.reduce((s,op)=>op.isBank?s+monthRev*Number(op.monthly)/100:s+op.monthly,0);
+  const monthOps   = opsItems.reduce((s,op)=>op.isBank?s+monthRev*bankFeeOnRev(op):s+op.monthly,0);
   const dailyOps   = monthOps/DAYS;
 
   const dailyCost  = dailyFood+dailyLabor+dailyRent+dailyOps;
@@ -1165,7 +1240,7 @@ function calculate(){
   const margin     = dailyRev>0?(dailyProf/dailyRev)*100:0;
 
   const fixedM     = monthLabor+monthRent+opsItems.reduce((s,op)=>op.isBank?s:s+op.monthly,0);
-  const bankRate   = opsItems.filter(o=>o.isBank).reduce((s,o)=>s+Number(o.monthly),0)/100;
+  const bankRate   = opsItems.filter(o=>o.isBank).reduce((s,o)=>s+bankFeeOnRev(o),0);
   const varUnit    = cogsUnit+selling*bankRate;
   const contrib    = selling-varUnit;
   const be         = contrib>0?Math.ceil((fixedM/DAYS)/contrib):'∞';
@@ -1235,7 +1310,7 @@ function calculate(){
 
   // KPIs
   setCl('kpi-margin',cc(margin)); setTx('kpi-margin',margin.toFixed(1)+'%'); setTx('kpi-margin-s',ms(margin));
-  setCl('kpi-day',cc(dailyProf)); setTx('kpi-day',fmt(dailyProf)); setTx('kpi-day-s',items+' × '+fmt(selling));
+  setTx('kpi-mrev',fmt(monthRev));
   setCl('kpi-month',cc(monthProf)); setTx('kpi-month',fmt(monthProf));
   setCl('kpi-food-pct',foodCostKpiClass(fp)); setTx('kpi-food-pct',fp.toFixed(1)+'%');
 

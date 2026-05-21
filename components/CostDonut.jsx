@@ -40,7 +40,7 @@ export default function CostDonut({ data, foodColor }) {
             position: "bottom",
             labels: {
               color: LEGEND_MUTED,
-              font: { family: "'DM Mono', monospace", size: 9 },
+              font: { family: "'JetBrains Mono', ui-monospace, monospace", size: 9 },
               boxWidth: 9,
               padding: 6,
             },

@@ -7,6 +7,8 @@ import { computePnl, ingCost, DAYS } from "@/lib/computePnl";
 import {
   bankFromSlider,
   bankToSlider,
+  cardShareFromSlider,
+  cardShareToSlider,
   fromSlider,
   toSlider,
   toSliderRange,
@@ -29,7 +31,7 @@ const PNL_PRICE_MIN_UAH = 120;
 const PNL_PRICE_MAX_UAH = 620;
 
 function clampPnlSellingPrice(n) {
-  const v = Math.round(Number(n) || 0);
+  const v = Math.round((Number(n) || 0) * 100) / 100;
   return Math.max(PNL_PRICE_MIN_UAH, Math.min(PNL_PRICE_MAX_UAH, v));
 }
 
@@ -55,15 +57,14 @@ const DEFAULT_INGREDIENTS = [
   { id: "lavash", name: "Briosh", grams: 75, ppkg: 20, isLavash: true, section: "burger" },
   { id: "cheese", name: "American cheese", grams: 40, ppkg: 580, isLavash: false, section: "burger" },
   {
-    id: "onion",
-    name: "Onions",
+    id: "pickles",
+    name: "Pickles",
     grams: 20,
     ppkg: 80,
     isLavash: false,
     gramsRange: [1, 100],
     section: "burger",
   },
-  { id: "greens", name: "Iceberg Lettuce", grams: 35, ppkg: 200, isLavash: false, section: "burger" },
   { id: "sauce", name: "Sauce", grams: 40, ppkg: 247, isLavash: false, section: "burger" },
   {
     id: "packaging",
@@ -97,7 +98,13 @@ const DEFAULT_OPS = [
   { id: "elec", name: "Electricity", monthly: 17000, isBank: false },
   { id: "mkt", name: "Marketing", monthly: 3000, isBank: false },
   { id: "cln", name: "Cleaning", monthly: 3000, isBank: false },
-  { id: "bank", name: "Banking", monthly: 2, isBank: true },
+  {
+    id: "bank",
+    name: "Payment Processing Fee",
+    monthly: 2,
+    isBank: true,
+    cardPct: 50,
+  },
   { id: "car", name: "Car / Gas", monthly: 4900, isBank: false },
   { id: "unex", name: "Unexpected", monthly: 12000, isBank: false },
 ];
@@ -309,6 +316,25 @@ export default function FoodCostCalculator() {
         return n;
       }
       const v = fromSlider("ops", +t);
+      n[idx] = { ...n[idx], monthly: v };
+      return n;
+    });
+  };
+
+  const bankCardSl = (idx, t) => {
+    setOpsItems((prev) => {
+      const n = [...prev];
+      if (!n[idx].isBank) return prev;
+      n[idx] = { ...n[idx], cardPct: cardShareFromSlider(+t) };
+      return n;
+    });
+  };
+
+  const opsFeePctInp = (idx, raw) => {
+    setOpsItems((prev) => {
+      const n = [...prev];
+      if (!n[idx].isBank) return prev;
+      const v = Math.min(10, Math.max(0, Number.parseFloat(String(raw)) || 0));
       n[idx] = { ...n[idx], monthly: v };
       return n;
     });
@@ -679,7 +705,10 @@ export default function FoodCostCalculator() {
                           removeIngredient(idx);
                         }}
                       >
-                        ✕ Remove
+                        <span className="del-btn-x" aria-hidden="true">
+                          ✕
+                        </span>{" "}
+                        Remove
                       </button>
                     </div>
                   </div>
@@ -759,7 +788,6 @@ export default function FoodCostCalculator() {
             />
           </div>
 
-          <div className="divider" />
           <div className="sub-lbl">Daily Snapshot</div>
           <div className="snap-grid">
             <div className="sc">
@@ -878,11 +906,9 @@ export default function FoodCostCalculator() {
               <div className="kpi-s">{marginStatus(margin)}</div>
             </div>
             <div className="kpi">
-              <div className="kpi-l">Daily Profit</div>
-              <div className={"kpi-v " + cc(dailyProf)}>{fmt(dailyProf)}</div>
-              <div className="kpi-s">
-                {items} × {fmt(price)}
-              </div>
+              <div className="kpi-l">Monthly Revenue</div>
+              <div className="kpi-v mut">{fmt(monthRev)}</div>
+              <div className="kpi-s">Gross · 30 days</div>
             </div>
             <div className="kpi">
               <div className="kpi-l">Monthly Profit</div>
@@ -926,60 +952,34 @@ export default function FoodCostCalculator() {
             <div className="proj-row">
               <span className="proj-rl">Daily</span>
               <div className="proj-rv">
-                <div className="proj-v">
-                  <span>{fUAH(dailyProf)}</span>
-                  <small>UAH</small>
-                </div>
-                <div className="proj-v">
-                  <span>{fUSD(dailyProf)}</span>
-                  <small>USD</small>
-                </div>
+                <div className="proj-v">{fUAH(dailyProf)}</div>
+                <div className="proj-v">{fUSD(dailyProf)}</div>
               </div>
             </div>
             <div className="proj-row">
               <span className="proj-rl">Monthly</span>
               <div className="proj-rv">
-                <div className="proj-v">
-                  <span>{fUAH(monthProf)}</span>
-                  <small>UAH</small>
-                </div>
-                <div className="proj-v">
-                  <span>{fUSD(monthProf)}</span>
-                  <small>USD</small>
-                </div>
+                <div className="proj-v">{fUAH(monthProf)}</div>
+                <div className="proj-v">{fUSD(monthProf)}</div>
               </div>
             </div>
             <div className="proj-row">
               <span className="proj-rl">Annual</span>
               <div className="proj-rv">
-                <div className="proj-v">
-                  <span>{fUAH(monthProf * 12)}</span>
-                  <small>UAH</small>
-                </div>
-                <div className="proj-v">
-                  <span>{fUSD(monthProf * 12)}</span>
-                  <small>USD</small>
-                </div>
+                <div className="proj-v">{fUAH(monthProf * 12)}</div>
+                <div className="proj-v">{fUSD(monthProf * 12)}</div>
               </div>
             </div>
             <div className="proj-row">
               <span className="proj-rl">5 Years</span>
               <div className="proj-rv">
-                <div className="proj-v">
-                  <span>{fUAH(monthProf * 60)}</span>
-                  <small>UAH</small>
-                </div>
-                <div className="proj-v">
-                  <span>{fUSD(monthProf * 60)}</span>
-                  <small>USD</small>
-                </div>
+                <div className="proj-v">{fUAH(monthProf * 60)}</div>
+                <div className="proj-v">{fUSD(monthProf * 60)}</div>
               </div>
             </div>
           </div>
           <div className="chart-wrap">
-            <div className="proj-ttl" style={{ marginBottom: 7 }}>
-              COST STRUCTURE
-            </div>
+            <div className="proj-ttl">COST STRUCTURE</div>
             {chartReady ? (
               <CostDonut data={pnl.donut} />
             ) : (
@@ -1010,18 +1010,7 @@ export default function FoodCostCalculator() {
               return (
                 <div className="ci ci-vstack" key={e.id}>
                   <div className="ci-line-3">
-                    <input
-                      type="text"
-                      className="ci-inp-name"
-                      value={e.name}
-                      onChange={(ev) => {
-                        setEmployees((prev) => {
-                          const c = [...prev];
-                          c[idx] = { ...c[idx], name: ev.target.value };
-                          return c;
-                        });
-                      }}
-                    />
+                    <span className="ci-row-nm">{e.name}</span>
                     <div className="ci-amt-blk">
                       <span className="ci-cur">₴</span>
                       <input
@@ -1047,7 +1036,9 @@ export default function FoodCostCalculator() {
                         );
                       }}
                     >
-                      ✕
+                      <span className="del-btn-x" aria-hidden="true">
+                        ✕
+                      </span>
                     </button>
                   </div>
                   <div className="ci-slider-full">
@@ -1097,18 +1088,7 @@ export default function FoodCostCalculator() {
               return (
                 <div className="ci ci-vstack" key={r.id}>
                   <div className="ci-line-3">
-                    <input
-                      type="text"
-                      className="ci-inp-name"
-                      value={r.name}
-                      onChange={(ev) => {
-                        setRentItems((prev) => {
-                          const c = [...prev];
-                          c[idx] = { ...c[idx], name: ev.target.value };
-                          return c;
-                        });
-                      }}
-                    />
+                    <span className="ci-row-nm">{r.name}</span>
                     <div className="ci-amt-blk">
                       <span className="ci-cur">₴</span>
                       <input
@@ -1134,7 +1114,9 @@ export default function FoodCostCalculator() {
                         );
                       }}
                     >
-                      ✕
+                      <span className="del-btn-x" aria-hidden="true">
+                        ✕
+                      </span>
                     </button>
                   </div>
                   <div className="ci-slider-full">
@@ -1180,54 +1162,58 @@ export default function FoodCostCalculator() {
               <span className="spct spct-total">{fUAH(monthOps)}</span>
             </div>
             {opsItems.map((op, idx) => {
+              const cardPct = op.isBank ? Number(op.cardPct ?? 50) : 0;
               const bankVal = op.isBank
-                ? Math.round(monthRev * (Number(op.monthly) / 100))
+                ? Math.round(
+                    monthRev * (Number(op.monthly) / 100) * (cardPct / 100)
+                  )
+                : 0;
+              const cashSharePct = op.isBank
+                ? Math.round((100 - cardPct) * 10) / 10
+                : 0;
+              const cardSharePctR = op.isBank
+                ? Math.round(cardPct * 10) / 10
                 : 0;
               const displayVal = op.isBank ? bankVal : op.monthly;
               const t = op.isBank
                 ? bankToSlider(op.monthly)
                 : toSlider("ops", op.monthly);
+              const cardT = op.isBank
+                ? cardShareToSlider(op.cardPct ?? 50)
+                : 0;
               return (
                 <div className="ci ci-vstack" key={op.id}>
                   <div className="ci-line-3">
-                    <div
-                      className="ci-ops-lbl"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        flexWrap: "wrap",
-                        minWidth: 0,
-                      }}
-                    >
-                      <input
-                        type="text"
-                        className="ci-inp-name"
-                        value={op.name}
-                        onChange={(ev) => {
-                          setOpsItems((prev) => {
-                            const c = [...prev];
-                            c[idx] = { ...c[idx], name: ev.target.value };
-                            return c;
-                          });
-                        }}
-                        style={op.isBank ? { maxWidth: 100 } : undefined}
-                      />
-                      {op.isBank ? (
-                        <span
-                          className="ci-bank-pct-lbl"
-                          style={{
-                            fontSize: 11,
-                            color: "var(--muted)",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {Number(op.monthly).toFixed(1)}%
-                        </span>
-                      ) : null}
+                    <div className="ci-ops-lbl">
+                      <span className="ci-row-nm">{op.name}</span>
                     </div>
                     {op.isBank ? (
-                      <span className="ci-amt-txt">{fUAH(displayVal)}</span>
+                      <div className="ci-bank-amounts">
+                        <div className="ci-amt-blk">
+                          <input
+                            type="number"
+                            min={0}
+                            max={10}
+                            step={0.1}
+                            className="ci-amt"
+                            value={op.monthly}
+                            onChange={(ev) => opsFeePctInp(idx, ev.target.value)}
+                            aria-label="Payment processing fee percent of card sales"
+                          />
+                          <span className="ci-cur">%</span>
+                        </div>
+                        <div className="ci-amt-blk">
+                          <span className="ci-cur">₴</span>
+                          <input
+                            type="number"
+                            readOnly
+                            tabIndex={-1}
+                            className="ci-amt"
+                            value={displayVal}
+                            aria-label="Monthly payment processing cost"
+                          />
+                        </div>
+                      </div>
                     ) : (
                       <div className="ci-amt-blk">
                         <span className="ci-cur">₴</span>
@@ -1255,7 +1241,9 @@ export default function FoodCostCalculator() {
                         );
                       }}
                     >
-                      ✕
+                      <span className="del-btn-x" aria-hidden="true">
+                        ✕
+                      </span>
                     </button>
                   </div>
                   <div className="ci-slider-full">
@@ -1269,12 +1257,43 @@ export default function FoodCostCalculator() {
                         onChange={(ev) => opsSl(idx, ev.target.value)}
                         aria-label={
                           op.isBank
-                            ? "Adjust banking fee percent with slider"
+                            ? "Payment processing fee from 0 to 10 percent of revenue that goes through cards"
                             : "Adjust operational cost with slider"
                         }
                       />
                     </div>
                   </div>
+                  {op.isBank ? (
+                    <>
+                      <div className="ci-bank-mix">
+                        <div className="ci-bank-mix-pair">
+                          <span className="ci-row-nm">Cash</span>
+                          <span className="ci-bank-mix-disp" aria-label="Share of sales paid in cash">
+                            {cashSharePct.toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="ci-bank-mix-pair ci-bank-mix-pair--end">
+                          <span className="ci-row-nm">Card</span>
+                          <span className="ci-bank-mix-disp" aria-label="Share of sales paid by card">
+                            {cardSharePctR.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                      <div className="ci-slider-full">
+                        <div className="ci-sl">
+                          <input
+                            type="range"
+                            min="0"
+                            max="1000"
+                            value={cardT}
+                            style={updateSliderFillStyle(cardT)}
+                            onChange={(ev) => bankCardSl(idx, ev.target.value)}
+                            aria-label="Share of revenue from card payments versus cash"
+                          />
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               );
             })}
