@@ -16,7 +16,7 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata = {
-  title: "Margin / Profit / Food Cost / Upsells / Projections — Calculator",
+  title: "Fast Food Calculator — Margin / Profit / Food Cost / Upsells / Projections",
   description:
     "Model margin, profit, food cost, upsell add-ons, and volume/revenue projections with break-even and P&L for food businesses.",
 };

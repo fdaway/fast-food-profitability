@@ -14,9 +14,9 @@
   --s3: #f0f1f3;
   --border: #c8ccd4;
   --border2: #9ca3af;
-  --accent: #c2410c;
-  --acc-d: #9a3412;
-  --acc-bg: #ffedd5;
+  --accent: #374151;
+  --acc-d: #1f2937;
+  --acc-bg: #f3f4f6;
   --green: #16a34a;
   --grn-l: #15803d;
   --red: #dc2626;
@@ -76,6 +76,10 @@ header {
 .hdr-titles {
   min-width: 0;
   flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  justify-content: center;
 }
 
 .hdr-name {
@@ -87,18 +91,30 @@ header {
   line-height: 1.15;
 }
 
+.hdr-name-primary {
+  white-space: nowrap;
+}
+
+.hdr-name-sub {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
 .hdr-name em {
   color: var(--accent);
   font-style: normal;
 }
 .hdr-name-cal {
   font-family: var(--FD);
-  font-size: 15px;
+  font-size: inherit;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: inherit;
   color: var(--accent);
   font-style: normal;
-  margin-left: 0.35em;
   white-space: nowrap;
 }
 
@@ -568,7 +584,17 @@ input[type="range"] {
   );
   outline: none;
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
   flex-shrink: 0;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-track {
+  cursor: pointer;
 }
 
 .ing-sl-row input[type="range"] {
@@ -1019,6 +1045,8 @@ input.ing-nm--hdr:focus {
   align-items: center;
   gap: 5px;
   min-width: 0;
+  cursor: pointer;
+  user-select: none;
 }
 
 .ci-bg {
@@ -1173,7 +1201,6 @@ input.ing-nm--hdr:focus {
 
 .proj-wrap {
   padding: 12px 16px 14px;
-  border-bottom: 1px solid var(--border);
 }
 
 .proj-ttl {

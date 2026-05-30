@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Margin / Profit / Food Cost / Upsells / Projections — Calculator</title>
+<title>Fast Food Calculator — Margin / Profit / Food Cost / Upsells / Projections</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -14,9 +14,9 @@
   --s3:#f0f1f3;
   --border:#c8ccd4;
   --border2:#9ca3af;
-  --accent:#c2410c;
-  --acc-d:#9a3412;
-  --acc-bg:#ffedd5;
+  --accent:#374151;
+  --acc-d:#1f2937;
+  --acc-bg:#f3f4f6;
   --green:#16a34a;
   --grn-l:#15803d;
   --red:#dc2626;
@@ -56,17 +56,12 @@ header{
   border-right:1px solid var(--border2);
   height:100%;
 }
-.hdr-titles{min-width:0;flex:0 1 auto}
-.hdr-name{
-  font-family:var(--FD);
-  font-size:15px;
-  font-weight:600;
-  letter-spacing:0.04em;
-  color:var(--text);
-  line-height:1.15;
-}
+.hdr-titles{min-width:0;flex:0 1 auto;display:flex;flex-direction:column;gap:2px;justify-content:center}
+.hdr-name{font-family:var(--FD);font-size:15px;font-weight:600;letter-spacing:0.04em;color:var(--text);line-height:1.15}
+.hdr-name-primary{white-space:nowrap}
+.hdr-name-sub{font-size:11px;font-weight:500;letter-spacing:0.06em;color:var(--muted);line-height:1.2;white-space:nowrap}
 .hdr-name em{color:var(--accent);font-style:normal}
-.hdr-name-cal{font-family:var(--FD);font-size:15px;font-weight:600;letter-spacing:0.04em;color:var(--accent);font-style:normal;margin-left:0.35em;white-space:nowrap}
+.hdr-name-cal{font-family:var(--FD);font-size:inherit;font-weight:600;letter-spacing:inherit;color:var(--accent);font-style:normal;white-space:nowrap}
 .hdr-right{
   display:flex;align-items:center;gap:8px;
   margin-left:auto;
@@ -138,8 +133,10 @@ input[type="range"]{
   -webkit-appearance:none;appearance:none;
   width:100%;height:4px;border-radius:2px;
   background:linear-gradient(to right,var(--accent) 0%,var(--accent) var(--fill,0%),var(--border2) var(--fill,0%),var(--border2) 100%);
-  outline:none;cursor:pointer;flex-shrink:0
+  outline:none;cursor:pointer;user-select:none;-webkit-user-select:none;flex-shrink:0
 }
+input[type="range"]::-webkit-slider-runnable-track{cursor:pointer}
+input[type="range"]::-moz-range-track{cursor:pointer}
 input[type="range"]::-webkit-slider-thumb{
   -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
   background:var(--accent);cursor:pointer;
@@ -246,7 +243,7 @@ input[type=number].ci-amt:read-only{cursor:default}
 input[type=number].ci-amt:read-only:focus{box-shadow:none;border-color:var(--border2);outline:none}
 .ci-amt-blk--pct-in input[type=number].ci-amt.ci-amt--pct-in{flex:1 1 auto;width:auto!important;min-width:0;max-width:none!important;margin:0;padding:4px 2px 4px 6px;border:none!important;border-radius:0;background:transparent!important;box-shadow:none!important}
 .ci-amt-blk--pct-in input[type=number].ci-amt.ci-amt--pct-in:focus{outline:none;border:none!important;box-shadow:none!important}.ci-l{font-size:11px;color:var(--label)}
-.ci-sl{display:flex;align-items:center;gap:5px}
+.ci-sl{display:flex;align-items:center;gap:5px;min-width:0;cursor:pointer;user-select:none}
 .ci-bank-mix{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:5px 0 5px;padding:0;width:100%;min-width:0}
 .ci-bank-mix-pair{display:flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto}
 .ci-bank-mix-pair--end{justify-content:flex-end;text-align:right;margin-left:auto}
@@ -289,7 +286,7 @@ input[type=number].ci-amt:read-only:focus{box-shadow:none;border-color:var(--bor
 .meter-sc{display:flex;justify-content:space-between;margin-top:3px}
 .meter-sc span{font-size:9px;font-weight:500;color:var(--muted)}
 
-.proj-wrap{padding:12px 16px 14px;border-bottom:1px solid var(--border)}
+.proj-wrap{padding:12px 16px 14px}
 .proj-ttl{font-family:var(--FD);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:0;padding-bottom:8px;border-bottom:1px solid var(--border)}
 .proj-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border)}
 .proj-row:last-child{border-bottom:none}
@@ -325,7 +322,8 @@ input[type=number].ci-amt:read-only:focus{box-shadow:none;border-color:var(--bor
 <header>
   <div class="hdr-brand">
     <div class="hdr-titles">
-      <div class="hdr-name">Margin <em>/</em> Profit <em>/</em> Food Cost <em>/</em> Upsells <em>/</em> Projections <span class="hdr-name-cal">Calculator</span></div>
+      <div class="hdr-name hdr-name-primary">Fast Food <span class="hdr-name-cal">Calculator</span></div>
+      <div class="hdr-name hdr-name-sub">Margin <em>/</em> Profit <em>/</em> Food Cost <em>/</em> Upsells <em>/</em> Projections</div>
     </div>
   </div>
   <div class="hdr-right">
@@ -423,7 +421,7 @@ input[type=number].ci-amt:read-only:focus{box-shadow:none;border-color:var(--bor
       <div class="kpi"><div class="kpi-l">Profit Margin</div><div class="kpi-v neu" id="kpi-margin">0%</div><div class="kpi-s" id="kpi-margin-s">—</div></div>
       <div class="kpi"><div class="kpi-l">Monthly Revenue</div><div class="kpi-v mut" id="kpi-mrev">₴0</div><div class="kpi-s">Gross · 30 days</div></div>
       <div class="kpi"><div class="kpi-l">Monthly Profit</div><div class="kpi-v neu" id="kpi-month">₴0</div><div class="kpi-s">30 days</div></div>
-      <div class="kpi"><div class="kpi-l">Food Cost %</div><div class="kpi-v neu" id="kpi-food-pct">0%</div><div class="kpi-s">of revenue</div></div>
+      <div class="kpi"><div class="kpi-l">Food Cost</div><div class="kpi-v neu" id="kpi-food-pct">0</div><div class="kpi-s">of revenue</div></div>
     </div>
     <div class="meter-wrap">
       <div class="meter-hd"><span class="meter-txt">Margin Health</span><span class="meter-pct" id="meter-pct">0%</span></div>
@@ -450,7 +448,6 @@ input[type=number].ci-amt:read-only:focus{box-shadow:none;border-color:var(--bor
       </div></div>
     </div>
     <div class="chart-wrap">
-      <div class="proj-ttl">COST STRUCTURE</div>
       <canvas id="donut"></canvas>
     </div>
   </div>
@@ -599,7 +596,7 @@ const ING_SECTION_TIT = { burger: 'Burger', fries: 'Fries', drinks: 'Drinks' };
 const MENU_UPSELLS_HD = 'Menu Upsales';
 const DEFAULT_INCLUDE_FRIES = false;
 const DEFAULT_INCLUDE_DRINKS = false;
-const COMBO_FRIES_ADD_UAH = 75;
+const COMBO_FRIES_ADD_UAH = 65;
 const COMBO_DRINK_ADD_UAH = 35;
 const PNL_PRICE_MIN_UAH = 120;
 const PNL_PRICE_MAX_UAH = 620;
@@ -1326,7 +1323,7 @@ function calculate(){
   setCl('kpi-margin',cc(margin)); setTx('kpi-margin',margin.toFixed(1)+'%'); setTx('kpi-margin-s',ms(margin));
   setTx('kpi-mrev',fmt(monthRev));
   setCl('kpi-month',cc(monthProf)); setTx('kpi-month',fmt(monthProf));
-  setCl('kpi-food-pct',foodCostKpiClass(fp)); setTx('kpi-food-pct',fp.toFixed(1)+'%');
+  setCl('kpi-food-pct',foodCostKpiClass(fp)); setTx('kpi-food-pct',fp.toFixed(1));
 
   // meter
   const mw=((Math.min(Math.max(margin,-5),30)+5)/35)*100;

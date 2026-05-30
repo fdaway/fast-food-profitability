@@ -25,7 +25,7 @@ const CostDonut = dynamic(() => import("@/components/CostDonut"), {
 const UAH_USD = 0.024;
 
 /** Applied to P&L selling price when combo sections are toggled on/off */
-const COMBO_FRIES_ADD_UAH = 75;
+const COMBO_FRIES_ADD_UAH = 65;
 const COMBO_DRINK_ADD_UAH = 35;
 const PNL_PRICE_MIN_UAH = 120;
 const PNL_PRICE_MAX_UAH = 620;
@@ -355,10 +355,13 @@ export default function FoodCostCalculator() {
       <header>
         <div className="hdr-brand">
           <div className="hdr-titles">
-            <div className="hdr-name">
-              Margin <em>/</em> Profit <em>/</em> Food Cost <em>/</em> Upsells{" "}
-              <em>/</em> Projections{" "}
+            <div className="hdr-name hdr-name-primary">
+              Fast Food{" "}
               <span className="hdr-name-cal">Calculator</span>
+            </div>
+            <div className="hdr-name hdr-name-sub">
+              Margin <em>/</em> Profit <em>/</em> Food Cost <em>/</em> Upsells{" "}
+              <em>/</em> Projections
             </div>
           </div>
         </div>
@@ -934,12 +937,12 @@ export default function FoodCostCalculator() {
               <div className="kpi-s">30 days</div>
             </div>
             <div className="kpi">
-              <div className="kpi-l">Food Cost %</div>
+              <div className="kpi-l">Food Cost</div>
               <div
                 className={"kpi-v " + foodCostKpiClass(fp)}
                 id="kpi-food-pct"
               >
-                {fp.toFixed(1)}%
+                {fp.toFixed(1)}
               </div>
               <div className="kpi-s">of revenue</div>
             </div>
@@ -997,7 +1000,6 @@ export default function FoodCostCalculator() {
             </div>
           </div>
           <div className="chart-wrap">
-            <div className="proj-ttl">COST STRUCTURE</div>
             {chartReady ? (
               <CostDonut data={pnl.donut} />
             ) : (
